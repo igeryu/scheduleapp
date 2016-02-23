@@ -27,12 +27,29 @@ public class AddPersonFrame extends javax.swing.JFrame {
 //    private Integer rank = 1;
     
     
-    
-    private void updatePeopleTable() {
-        peopleTable.setModel(getTableModel());
-        peopleTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    private void updatePeopleTable(JTable table) {
+        table.setModel(getMidsTableModel());
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         
-        TableColumnModel columnModel = peopleTable.getColumnModel();
+        TableColumnModel columnModel = table.getColumnModel();
+        
+        columnModel.getColumn(0).setPreferredWidth(50);  //  Rank
+        columnModel.getColumn(1).setPreferredWidth(150); //  First Name
+        columnModel.getColumn(2).setPreferredWidth(150); //  Last Name
+        columnModel.getColumn(3).setPreferredWidth(50); //  Shift
+        columnModel.getColumn(4).setPreferredWidth(50); //  Skill   
+    }
+    
+    
+    
+    private void updatePeopleTables() {
+        TableColumnModel columnModel;
+        
+        ///////////////////  MIDS
+        midsTable.setModel(getMidsTableModel());
+        midsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        columnModel = midsTable.getColumnModel();
         
         columnModel.getColumn(0).setPreferredWidth(50);  //  Rank
         columnModel.getColumn(1).setPreferredWidth(150); //  First Name
@@ -40,23 +57,74 @@ public class AddPersonFrame extends javax.swing.JFrame {
         columnModel.getColumn(3).setPreferredWidth(50); //  Shift
         columnModel.getColumn(4).setPreferredWidth(50); //  Skill
         
-//        columnModel.getColumn(0).setMaxWidth(5);
-//        columnModel.getColumn(1).setMaxWidth(5);
-//        columnModel.getColumn(2).setMaxWidth(5);
-//        columnModel.getColumn(3).setMaxWidth(5);
-//        columnModel.getColumn(4).setMaxWidth(5);
+        
+        ///////////////////  DAYS
+        daysTable.setModel(getDaysTableModel());
+        daysTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        columnModel = daysTable.getColumnModel();
+        
+        columnModel.getColumn(0).setPreferredWidth(50);  //  Rank
+        columnModel.getColumn(1).setPreferredWidth(150); //  First Name
+        columnModel.getColumn(2).setPreferredWidth(150); //  Last Name
+        columnModel.getColumn(3).setPreferredWidth(50); //  Shift
+        columnModel.getColumn(4).setPreferredWidth(50); //  Skill
+        
+        
+        ///////////////////  SWINGS
+        swingsTable.setModel(getSwingsTableModel());
+        swingsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        columnModel = swingsTable.getColumnModel();
+        
+        columnModel.getColumn(0).setPreferredWidth(50);  //  Rank
+        columnModel.getColumn(1).setPreferredWidth(150); //  First Name
+        columnModel.getColumn(2).setPreferredWidth(150); //  Last Name
+        columnModel.getColumn(3).setPreferredWidth(50); //  Shift
+        columnModel.getColumn(4).setPreferredWidth(50); //  Skill
     }
     
     
     
     /**
-     * Returns the model for the table.
+     * Returns the mid-shift model for the table.
      * @return 
      */
-    private TableModel getTableModel () {
+    private TableModel getMidsTableModel () {
         PersonDAO personDao = new PersonDAO();
         Integer workcenter = workcenterBox.getSelectedIndex() + 1;
-        Integer shift      = shiftBox.getSelectedIndex() + 1;
+        Integer shift      = 1;
+        TableModel tableModel = personDao.getPeople(workcenter, shift);
+        
+        
+        return tableModel;
+    }
+    
+    
+    
+    /**
+     * Returns the day-shift model for the table.
+     * @return 
+     */
+    private TableModel getDaysTableModel () {
+        PersonDAO personDao = new PersonDAO();
+        Integer workcenter = workcenterBox.getSelectedIndex() + 1;
+        Integer shift      = 2;
+        TableModel tableModel = personDao.getPeople(workcenter, shift);
+        
+        
+        return tableModel;
+    }
+    
+    
+    /**
+     * Returns the swing-shift model for the table.
+     * @return 
+     */
+    private TableModel getSwingsTableModel () {
+        PersonDAO personDao = new PersonDAO();
+        Integer workcenter = workcenterBox.getSelectedIndex() + 1;
+        Integer shift      = 3;
         TableModel tableModel = personDao.getPeople(workcenter, shift);
         
         
@@ -142,11 +210,18 @@ public class AddPersonFrame extends javax.swing.JFrame {
         firstNameField = new javax.swing.JTextField();
         lastNameLabel = new javax.swing.JLabel();
         lastNameField = new javax.swing.JTextField();
-        tableScrollPane = new javax.swing.JScrollPane();
-        peopleTable = new javax.swing.JTable();
-        addButton = new javax.swing.JButton();
         skillLabel = new javax.swing.JLabel();
         skillBox = new javax.swing.JComboBox();
+        addButton = new javax.swing.JButton();
+        midsLabel = new javax.swing.JLabel();
+        midsScrollPane = new javax.swing.JScrollPane();
+        midsTable = new javax.swing.JTable();
+        daysLabel = new javax.swing.JLabel();
+        daysScrollPane = new javax.swing.JScrollPane();
+        daysTable = new javax.swing.JTable();
+        swingsLabel = new javax.swing.JLabel();
+        swingsScrollPane = new javax.swing.JScrollPane();
+        swingsTable = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -211,9 +286,14 @@ public class AddPersonFrame extends javax.swing.JFrame {
             }
         });
 
-        peopleTable.setModel(getTableModel());
-        updatePeopleTable();
-        tableScrollPane.setViewportView(peopleTable);
+        skillLabel.setText("Skill");
+
+        skillBox.setModel(getSkillBoxModel());
+        skillBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                skillBoxActionPerformed(evt);
+            }
+        });
 
         addButton.setFont(new java.awt.Font("Lucida Grande", 0, 18)); // NOI18N
         addButton.setText("Add");
@@ -223,14 +303,24 @@ public class AddPersonFrame extends javax.swing.JFrame {
             }
         });
 
-        skillLabel.setText("Skill");
+        midsLabel.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
+        midsLabel.setText("Mids");
 
-        skillBox.setModel(getSkillBoxModel());
-        skillBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                skillBoxActionPerformed(evt);
-            }
-        });
+        midsTable.setModel(getMidsTableModel());
+        midsScrollPane.setViewportView(midsTable);
+
+        daysLabel.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
+        daysLabel.setText("Days");
+
+        daysTable.setModel(getDaysTableModel());
+        daysScrollPane.setViewportView(daysTable);
+
+        swingsLabel.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
+        swingsLabel.setText("Swings");
+
+        swingsTable.setModel(getSwingsTableModel());
+        updatePeopleTables();
+        swingsScrollPane.setViewportView(swingsTable);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -274,29 +364,41 @@ public class AddPersonFrame extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(39, 39, 39)
-                                .addComponent(tableScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(38, 38, 38)
+                                .addComponent(firstNameLabel)
+                                .addGap(86, 86, 86)
+                                .addComponent(lastNameLabel))
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(38, 38, 38)
-                                        .addComponent(firstNameLabel)
-                                        .addGap(86, 86, 86)
-                                        .addComponent(lastNameLabel))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(firstNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(lastNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(33, 33, 33)
-                                        .addComponent(skillLabel))
-                                    .addComponent(skillBox, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                .addComponent(firstNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(lastNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(33, 33, 33)
+                                .addComponent(skillLabel))
+                            .addComponent(skillBox, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(150, Short.MAX_VALUE))))
             .addGroup(layout.createSequentialGroup()
-                .addGap(230, 230, 230)
-                .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(230, 230, 230)
+                        .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(54, 54, 54)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(daysScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(217, 217, 217)
+                                .addComponent(daysLabel))
+                            .addComponent(midsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(213, 213, 213)
+                                .addComponent(midsLabel))
+                            .addComponent(swingsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(217, 217, 217)
+                                .addComponent(swingsLabel)))))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -338,9 +440,19 @@ public class AddPersonFrame extends javax.swing.JFrame {
                         .addComponent(skillBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
-                .addComponent(tableScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 337, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(41, 41, 41))
+                .addGap(18, 18, 18)
+                .addComponent(midsLabel)
+                .addGap(4, 4, 4)
+                .addComponent(midsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(daysLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(daysScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(swingsLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(swingsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(26, Short.MAX_VALUE))
         );
 
         pack();
@@ -371,16 +483,19 @@ public class AddPersonFrame extends javax.swing.JFrame {
         Integer workcenterID = workcenterBox.getSelectedIndex() + 1;
         Integer shiftID      = shiftBox.getSelectedIndex() + 1;
         Integer rankID       = rankBox.getSelectedIndex() + 1;
+        Integer skillID      = skillBox.getSelectedIndex() + 1;
         
         //  DEBUG:
         System.out.printf("\nworkcenterID = %s", workcenterID);
         System.out.printf("\nshiftID = %s", shiftID);
         System.out.printf("\nrankID = %s\n", rankID);
         
-        if (personDao.addPerson(firstName, lastName, rankID, workcenterID, shiftID)) {
+        if (personDao.addPerson(firstName, lastName,
+                                rankID, workcenterID,
+                                shiftID, skillID)) {
             firstNameField.setText("");
             lastNameField.setText("");
-            updatePeopleTable();
+            updatePeopleTables();
         }
         
         
@@ -388,17 +503,17 @@ public class AddPersonFrame extends javax.swing.JFrame {
 
     private void workcenterBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_workcenterBoxActionPerformed
         // TODO add your handling code here:
-        updatePeopleTable();
+        updatePeopleTables();
     }//GEN-LAST:event_workcenterBoxActionPerformed
 
     private void shiftBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shiftBoxActionPerformed
         // TODO add your handling code here:
-        updatePeopleTable();
+        updatePeopleTables();
     }//GEN-LAST:event_shiftBoxActionPerformed
 
     private void rankBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rankBoxActionPerformed
         // TODO add your handling code here:
-        updatePeopleTable();
+        updatePeopleTables();
     }//GEN-LAST:event_rankBoxActionPerformed
 
     private void skillBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_skillBoxActionPerformed
@@ -442,11 +557,16 @@ public class AddPersonFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
+    private javax.swing.JLabel daysLabel;
+    private javax.swing.JScrollPane daysScrollPane;
+    private javax.swing.JTable daysTable;
     private javax.swing.JTextField firstNameField;
     private javax.swing.JLabel firstNameLabel;
     private javax.swing.JTextField lastNameField;
     private javax.swing.JLabel lastNameLabel;
-    private javax.swing.JTable peopleTable;
+    private javax.swing.JLabel midsLabel;
+    private javax.swing.JScrollPane midsScrollPane;
+    private javax.swing.JTable midsTable;
     private javax.swing.JComboBox rankBox;
     private javax.swing.JLabel rankLabel;
     private javax.swing.JComboBox shiftBox;
@@ -455,7 +575,9 @@ public class AddPersonFrame extends javax.swing.JFrame {
     private javax.swing.JLabel skillLabel;
     private javax.swing.JLabel startDateLabel;
     private org.jdesktop.swingx.JXDatePicker startDatePicker;
-    private javax.swing.JScrollPane tableScrollPane;
+    private javax.swing.JLabel swingsLabel;
+    private javax.swing.JScrollPane swingsScrollPane;
+    private javax.swing.JTable swingsTable;
     private javax.swing.JLabel titleLabel;
     private javax.swing.JComboBox workcenterBox;
     private javax.swing.JLabel workcenterLabel;

@@ -20,18 +20,19 @@ public class Person implements java.io.Serializable {
    
 //The default constructor is public to be accessible from JSP View pages. 
    
-   public Person() {this(-1,"","", 0, 0, 0);}
+   public Person() {this(-1,"","", 0, 0, 0, 0);}
    //The full constructor is package-private to prevent misuse. 
    //The RegisterServer method createStudent should be used to create 
    //a new Student object.
    
-   Person(int oID, String fn, String ln, Integer rID, Integer wcID, Integer sID){
+   Person(int oID, String fn, String ln, Integer rID, Integer wcID, Integer shID, Integer skID){
       objectID=oID;
       firstName = fn;
       lastName = ln;
       rank_id = rID;
       workcenter_id = wcID;
-      shift_id = sID;
+      shift_id = shID;
+      skill_id = skID;
    }
    
    public void setFirstName(String n) {

@@ -6,6 +6,7 @@
 package domain;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +19,10 @@ import util.DBConnectionPool;
 public class PersonDAO {
 
     private DBConnectionPool connPool;
+    
+    //  TODO:  Build an arraylist of all people at initialization, then make methods to return inviduals that match criteria (shift, workcenter, etc)
+    //  TODO:  Refactor other classes that use PersonDAO, to only use one instance, so that the population of the arraylist mentioned above happens only when necessary
+    
 
     public int countPeople() {
         return getPeople().size();
@@ -77,7 +82,7 @@ public class PersonDAO {
                 String lastName = rset.getString("last_name");
 
                 //  TODO:  Fix this:
-                person = new Person(id, firstName, lastName, 0, 0, 0);
+                person = new Person(id, firstName, lastName, 0, 0, 0, 0);
             }
         } catch (SQLException se) {
             throw new RuntimeException(
@@ -127,7 +132,7 @@ public class PersonDAO {
                 String lastName = rset.getString("last_name");
 
                 //  TODO:  Fix this:
-                Person person = new Person(id, firstName, lastName, 0, 0, 0);
+                Person person = new Person(id, firstName, lastName, 0, 0, 0, 0);
 
                 personList.add(person);
             }
@@ -180,7 +185,7 @@ public class PersonDAO {
                 String lastName = rset.getString("Last_Name");
 
                 //  TODO:  Fix this:
-                Person person = new Person(id, firstName, lastName, 0, 0, 0);
+                Person person = new Person(id, firstName, lastName, 0, 0, 0, 0);
 
                 personList.add(person);
             }
@@ -268,7 +273,7 @@ public class PersonDAO {
     }
     
     private static final String INSERT_STMT = "INSERT INTO alan.person "
-            + "VALUES (?, ?, ?, ?, ?, ?)";
+            + "VALUES (?, ?, ?, ?, ?, ?, ?)";
     
     public void insert(Person person) {
         Connection conn = null;
@@ -298,6 +303,7 @@ public class PersonDAO {
             stmt.setInt(4, person.getRankID());
             stmt.setInt(5, person.getWorkcenterID());
             stmt.setInt(6, person.getShiftID());
+            stmt.setInt(7, person.getSkillID());
             stmt.executeUpdate();
             person.setObjectID(personID);
             
@@ -342,10 +348,11 @@ public class PersonDAO {
      * @param ph
      * @return 
      */
-    public boolean addPerson(String fn, String ln,
-                             Integer rank, Integer workcenter, Integer shift) {
+    public boolean addPerson(String fn, String ln, Integer rank,
+                             Integer workcenter, Integer shift,
+                             Integer skill) {
         //  TODO:  Fix this:
-        Person person = new Person(-1, fn, ln, rank, workcenter, shift);
+        Person person = new Person(-1, fn, ln, rank, workcenter, shift, skill);
 
         if (person == null) {
             return false;
@@ -355,6 +362,8 @@ public class PersonDAO {
 
         return true;
     }
+    
+    
 
     public void update(Person person) {
         Connection conn = null;

@@ -18,6 +18,7 @@ class ObjectIdDAO {
     
    //public static final String COURSE="Course";
    public static final String PERSON="Person";
+   public static final String SHIFT_DATE="Shift_Date";
    private DBConnectionPool connPool;
    
    public ObjectIdDAO() {}
