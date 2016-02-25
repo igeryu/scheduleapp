@@ -1,4 +1,10 @@
-//  PersonDAO.java
+//  ShiftDAO.java
+
+/**
+ * Changelog:
+ * Added getShiftsList() method
+ */
+
 /**
  *
  * @author Alan Johnson
@@ -11,6 +17,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.table.TableModel;
@@ -23,6 +31,51 @@ public class ShiftDAO {
 
     private static final String GET_STATEMENT = "SELECT * "
             + "FROM shift";
+    public ObservableList<String> getShiftsList() {
+        
+        PreparedStatement request = null;
+        Connection conn = null;
+
+        try {
+            conn = DBConnectionPool.getPoolConnection();
+            request = conn.prepareStatement(GET_STATEMENT);
+
+            ResultSet rset = request.executeQuery();
+            ArrayList<String> shiftList = new ArrayList<>();
+            
+            while (rset.next()) {
+                shiftList.add(rset.getString("name"));
+            }
+            
+            return FXCollections.observableArrayList(shiftList);
+
+        } catch (SQLException se) {
+            System.out.println("\nA database error occurred. " + se.getMessage());
+        } catch (Exception e) {
+            System.out.println("\nException: " + e.getMessage());
+        } finally {
+            
+            if (request != null) {
+                try {
+                    request.close();
+                } catch (SQLException se) {
+                    se.printStackTrace(System.err);
+                }
+            }
+            
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                }
+            }
+        }
+
+        return null;
+    }
+    
+    
     public ComboBoxModel getShifts() {
         
         PreparedStatement request = null;

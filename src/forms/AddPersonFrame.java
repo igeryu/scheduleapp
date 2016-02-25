@@ -140,7 +140,7 @@ public class AddPersonFrame extends javax.swing.JFrame {
     private ComboBoxModel getRankBoxModel () {
         RankDAO rankDao = new RankDAO();
         
-        return rankDao.getRanks();
+        return rankDao.getRanksBox();
     }
     
     
@@ -164,7 +164,7 @@ public class AddPersonFrame extends javax.swing.JFrame {
     private ComboBoxModel getSkillBoxModel () {
         SkillDAO skillDao = new SkillDAO();
         
-        return skillDao.getSkills();
+        return skillDao.getSkillsBox();
     }
     
     
