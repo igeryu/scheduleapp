@@ -3,6 +3,8 @@
 /**
  * Changelog:
  * 2016-02-24 : Added getPeopleByShift() method to assist with new JavaFX layout
+ * 
+ * 2016-02-25 : Added workcenter to GET_BY_SHIFT_STMT WHERE clause, and modified getPeopleByShift() to use that new argument
  */
 
 /**
@@ -177,8 +179,10 @@ public class PersonDAO_New {
     
     
     private static final String GET_BY_SHIFT_STMT = "SELECT * FROM person "
-            + "WHERE shift_id = ?";
-    public ObservableList<Person> getPeopleByShift(Integer shift) {
+            + "WHERE    shift_id = ? "
+            + "AND workcenter_id = ?";
+    public ObservableList<Person> getPeopleByShift(Integer shift,
+                                                   Integer workcenter) {
 
         PreparedStatement request = null;
         Connection conn = null;
@@ -193,6 +197,7 @@ public class PersonDAO_New {
             conn = DBConnectionPool.getPoolConnection();
             request = conn.prepareStatement(GET_BY_SHIFT_STMT);
             request.setInt(1, shift);
+            request.setInt(2, workcenter);
 
             
             ResultSet rset = request.executeQuery();
@@ -204,9 +209,16 @@ public class PersonDAO_New {
                 String lastName = rset.getString("last_name");
                 String rank = rankMap.get(rset.getInt("rank_id"));
                 String skill = skillMap.get(rset.getInt("skill_id"));
+                
+                
+                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
+                                + "rank: %s\nskill: %s", rank, skill);
 
                 //  TODO:  Fix this:
                 Person person = new Person(firstName, lastName, rank, skill);
+                
+                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
+                                + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
 
                 personList.add(person);
             }

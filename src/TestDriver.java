@@ -1,8 +1,8 @@
 
 import domain.Person;
 import domain.PersonDAO;
-import forms.AddPersonFrame;
 import forms.AddPersonStage;
+import forms.EditPersonStage;
 import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -25,10 +25,6 @@ public class TestDriver extends Application {
     
     public static void main (String[] args) {
         
-        
-//        AddPersonFrame frame = new AddPersonFrame();
-//        frame.setVisible(true);
-        
         launch(args);
         
     }
@@ -43,6 +39,10 @@ public class TestDriver extends Application {
         Button addPersonButton = new Button("Test 'Add Person'");
         addPersonButton.setOnAction(e -> (new AddPersonStage()).display());
         layout.getChildren().add(addPersonButton);
+        
+        Button editPersonButton = new Button("Test 'Edit Person'");
+        editPersonButton.setOnAction(e -> (new EditPersonStage()).display());
+        layout.getChildren().add(editPersonButton);
         
         stage.show();
     }

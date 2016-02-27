@@ -2,6 +2,9 @@
 /**
  * Changelog:
  * 2016-02-24 : Added rank, workcenter, shift, skill strings
+ * 
+ * 2016-02-25 : Made rank, workcenter, shift, and skill private
+ * 2016-02-25 : Made get/set methods for rank, workcenter, shift, and skill
  */
 /**
  *
@@ -14,10 +17,10 @@ public class Person implements java.io.Serializable {
     int objectID;
     String firstName;
     String lastName;
-    String rank;
-    String workcenter;
-    String shift;
-    String skill;
+    private String rank;
+    private String workcenter;
+    private String shift;
+    private String skill;
     
     
     Integer rank_id;
@@ -95,5 +98,61 @@ public class Person implements java.io.Serializable {
         return String.format("%s, %s: (R: %s) (W: %s) (S: %s)",
                 firstName, lastName,
                 rank_id, workcenter_id, shift_id);
+    }
+
+    /**
+     * @return the rank
+     */
+    public String getRank() {
+        return rank;
+    }
+
+    /**
+     * @return the shift
+     */
+    public String getShift() {
+        return shift;
+    }
+
+    /**
+     * @return the skill
+     */
+    public String getSkill() {
+        return skill;
+    }
+
+    /**
+     * @return the workcenter
+     */
+    public String getWorkcenter() {
+        return workcenter;
+    }
+
+    /**
+     * @param workcenter the workcenter to set
+     */
+    public void setWorkcenter(String workcenter) {
+        this.workcenter = workcenter;
+    }
+
+    /**
+     * @param rank the rank to set
+     */
+    public void setRank(String rank) {
+        this.rank = rank;
+    }
+
+    /**
+     * @param shift the shift to set
+     */
+    public void setShift(String shift) {
+        this.shift = shift;
+    }
+
+    /**
+     * @param skill the skill to set
+     */
+    public void setSkill(String skill) {
+        this.skill = skill;
     }
 }

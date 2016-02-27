@@ -6,19 +6,23 @@
  * 2016-02-24 : Added rest of components and fixed spacing/alignment
  * 2016-02-24 : Added updateAllTables() and updateTable(Shift) methods
  * 2016-02-24 : Got three-shift view working
- * 2016-02-24 : Got rank/shift/skill/workcenter drop-downs populated
+ * 2016-02-24 : Got rank/shift/skill/workcenter choiceboxes populated
+ * 
+ * 2016-02-25 : Got workcenter choicebox to change what is shown in the tables
+ * 2016-02-25 : Implemented 'add person' functionality, it verifies that all data has been entered (except date), and only updates the affected shift table
+ * 2016-02-25 : Added Skill Level column to people tables, moved Rank column to far left
  */
 
 package forms;
 
 import domain.Person;
-import domain.PersonDAO;
 import domain.PersonDAO_New;
 import domain.RankDAO;
 import domain.ShiftDAO;
 import domain.SkillDAO;
 import domain.WorkcenterDAO;
-import javafx.collections.FXCollections;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -32,7 +36,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -84,32 +87,25 @@ public class AddPersonStage {
         
         //           ==================  1st  Row  ==================
         Label workcenterLabel = new Label("Workcenter");
-//        workcenterLabel.setAlignment(Pos.CENTER);
         GridPane.setConstraints(workcenterLabel, 0, 0);
         
         Label shiftLabel = new Label("Shift");
-//        shiftLabel.setAlignment(Pos.CENTER);
         GridPane.setConstraints(shiftLabel, 1, 0);
         
         Label rankLabel = new Label("Rank");
-//        rankLabel.setAlignment(Pos.CENTER);
         GridPane.setConstraints(rankLabel, 2, 0);
         
         Label startDateLabel = new Label("Start Date");
-//        startDateLabel.setAlignment(Pos.CENTER);
         GridPane.setConstraints(startDateLabel, 3, 0);
         
         //           ==================  2nd  Row  ==================
         Label firstNameLabel = new Label("First Name");
-//        firstNameLabel.setAlignment(Pos.CENTER);
         GridPane.setConstraints(firstNameLabel, 0, 2);
         
         Label lastNameLabel = new Label("Last Name");
-//        lastNameLabel.setAlignment(Pos.CENTER);
         GridPane.setConstraints(lastNameLabel, 1, 2);
         
         Label skillLabel = new Label("Skill Level");
-//        skillLabel.setAlignment(Pos.CENTER);
         GridPane.setConstraints(skillLabel, 2, 2);
         
         inputPane.getChildren().addAll(workcenterLabel, shiftLabel,
@@ -117,7 +113,15 @@ public class AddPersonStage {
                                         firstNameLabel, lastNameLabel,
                                         skillLabel);
         
+        //      ========================  Inputs  ========================
+        
+        //           ==================  1st  Row  ==================
         workcenterBox = new ChoiceBox((new WorkcenterDAO()).getWorkcentersList());
+        workcenterBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            public void changed(ObservableValue ov, Number oldValue, Number newValue) {
+                updateAllTables();
+            }
+        });
         GridPane.setConstraints(workcenterBox, 0, 1);
         
         shiftBox = new ChoiceBox((new ShiftDAO()).getShiftsList());
@@ -141,7 +145,54 @@ public class AddPersonStage {
         
         //           ==================  3rd  Row  ==================
         Button addButton = new Button("Add");
-        //  TODO:  Add functionality to addbutton
+        addButton.setOnAction(e -> {
+            String firstName = firstNameField.getText();
+            String lastName = lastNameField.getText();
+            Integer workcenterID = workcenterBox.getSelectionModel().getSelectedIndex() + 1;
+            Integer shiftID = shiftBox.getSelectionModel().getSelectedIndex() + 1;
+            Integer rankID = rankBox.getSelectionModel().getSelectedIndex() + 1;
+            Integer skillID = skillBox.getSelectionModel().getSelectedIndex() + 1;
+            
+            //  TODO:  Acquire start date data and use it as part of input requirements
+            
+            if (firstName.equals("") || lastName.equals("")
+             || workcenterID < 1 || shiftID < 1 || rankID < 1 || skillID < 1) {
+                // DEBUG:
+                System.out.println("\n[AddPersonStage.display()] not enough data to add person...\n");
+                
+                return;
+            }
+
+            PersonDAO_New personDao = new PersonDAO_New();
+            
+            //  DEBUG:
+            System.out.printf("\nworkcenterID = %s", workcenterID);
+            System.out.printf("\nshiftID = %s", shiftID);
+            System.out.printf("\nrankID = %s\n", rankID);
+
+            if (personDao.addPerson(firstName, lastName,
+                    rankID, workcenterID,
+                    shiftID, skillID)) {
+                firstNameField.setText("");
+                lastNameField.setText("");
+                
+                //  TODO: Make this line update only the shift affected
+                Shift shiftAffected;
+                switch (shiftID) {
+                    case 1:
+                        updateTable(Shift.MIDS);
+                        break;
+
+                    case 2:
+                        updateTable(Shift.DAYS);
+                        break;
+
+                    case 3:
+                        updateTable(Shift.SWINGS);
+                        break;
+                }
+            }
+        });
         addButton.setAlignment(Pos.CENTER);
         StackPane addButtonPane = new StackPane();
         GridPane.setConstraints(addButtonPane, 0, 4, 4, 1);
@@ -159,15 +210,12 @@ public class AddPersonStage {
         rootLayout.getChildren().add(tableBox);
         
         Label midsLabel = new Label("Mids");
-//        midsLabel.setAlignment(Pos.CENTER);
         midsTable = new TableView();
         
         Label daysLabel = new Label("Days");
-//        daysLabel.setAlignment(Pos.CENTER);
         daysTable = new TableView();
         
         Label swingsLabel = new Label("Swings");
-//        swingsLabel.setAlignment(Pos.CENTER);
         swingsTable = new TableView();
         
         tableBox.getChildren().addAll(midsLabel,   midsTable,
@@ -193,42 +241,53 @@ public class AddPersonStage {
         //  2. Turn off auto resize (if applicable/necessary)
         //  3. Set column widths
         
-//        table.
-        
+        //  Create Columns
+        TableColumn rankColumn = new TableColumn("Rank");
         TableColumn firstNameColumn = new TableColumn("First Name");
         TableColumn lastNameColumn = new TableColumn("Last Name");
+        TableColumn skillColumn = new TableColumn("Skill Lv");
         
-
+        //  Bind Person properties to table columns
+        rankColumn.setCellValueFactory(
+                new PropertyValueFactory<Person, String>("rank")
+        );
         firstNameColumn.setCellValueFactory(
                 new PropertyValueFactory<Person, String>("firstName")
         );
         lastNameColumn.setCellValueFactory(
                 new PropertyValueFactory<Person, String>("lastName")
         );
+        skillColumn.setCellValueFactory(
+                new PropertyValueFactory<Person, String>("skill")
+        );
 
         ObservableList<Person> data = null;
         TableView table = null;
         PersonDAO_New personDao = new PersonDAO_New();
+        Integer workcenterID = workcenterBox.getSelectionModel().getSelectedIndex() + 1;
+        
+        //  DEBUG:
+        System.out.println("\nSelected Workcenter: " + workcenterID);
         
         switch (shift) {
             case MIDS:
                 table = midsTable;
-                data = personDao.getPeopleByShift(1);
+                data = personDao.getPeopleByShift(1, workcenterID);
                 break;
                 
             case DAYS:
                 table = daysTable;
-                data = personDao.getPeopleByShift(2);
+                data = personDao.getPeopleByShift(2, workcenterID);
                 break;
                 
             case SWINGS:
                 table = swingsTable;
-                data = personDao.getPeopleByShift(3);
+                data = personDao.getPeopleByShift(3, workcenterID);
                 break;
         }
         
         table.getColumns().clear();
-        table.getColumns().addAll(firstNameColumn, lastNameColumn);
+        table.getColumns().addAll(rankColumn, firstNameColumn, lastNameColumn, skillColumn);
         table.setItems(data);
     }
     
