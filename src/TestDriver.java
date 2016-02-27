@@ -1,8 +1,15 @@
 
 import domain.Person;
 import domain.PersonDAO;
-import forms.AddPersonFrame;
+import forms.AddPersonStage;
+import forms.EditPersonStage;
 import java.util.ArrayList;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import util.DBConnectionPool;
 
 /*
@@ -14,23 +21,30 @@ import util.DBConnectionPool;
  *
  * @author alanjohnson
  */
-public class TestDriver {
+public class TestDriver extends Application {
     
     public static void main (String[] args) {
-        PersonDAO personDao = new PersonDAO();
         
-        //personDao.addPerson("Test01_First", "Test01_Last");
-        //personDao.addPerson("Test02_First", "Test02_Last");
+        launch(args);
         
-        ArrayList<Person> personList = personDao.getPeople();
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Stage stage = new Stage();
+        Pane layout = new VBox(30);
+        Scene scene = new Scene(layout, 200, 200);
+        stage.setScene(scene);
         
-//        for (Person p : personList) {
-//            System.out.printf("\nPerson: \"%s %s\"", p.getFirstName(), p.getLastName());
-//        }
+        Button addPersonButton = new Button("Test 'Add Person'");
+        addPersonButton.setOnAction(e -> (new AddPersonStage()).display());
+        layout.getChildren().add(addPersonButton);
         
-        AddPersonFrame frame = new AddPersonFrame();
-        frame.setVisible(true);
+        Button editPersonButton = new Button("Test 'Edit Person'");
+        editPersonButton.setOnAction(e -> (new EditPersonStage()).display());
+        layout.getChildren().add(editPersonButton);
         
+        stage.show();
     }
     
 }
