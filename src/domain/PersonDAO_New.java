@@ -40,6 +40,9 @@ public class PersonDAO_New {
 //    }
 
     public void delete(Person person) {
+        //  DEBUG:
+        System.out.println("\n[PersonDAO_New.delete()] Entering method...");
+        
         Connection conn = null;
         PreparedStatement stmt = null;
 
@@ -71,6 +74,7 @@ public class PersonDAO_New {
                 }
             }
         }
+        System.out.println("\n[PersonDAO_New.delete()] Exiting method...");
     }
     private static final String DELETE_STMT = "DELETE FROM alan.person "
             + "WHERE id = ?";
@@ -190,8 +194,8 @@ public class PersonDAO_New {
         
         ObservableList<Person> personData = null;
         ArrayList<Person> personList = new ArrayList<>();
-        Map<Integer, String> rankMap = (new RankDAO()).getRanksMap();
-        Map<Integer, String> skillMap = (new SkillDAO()).getSkillsMap();
+        Map<Integer, String> rankMap = (new RankDAO()).getMap();
+        Map<Integer, String> skillMap = (new SkillDAO()).getMap();
         
         try {
             conn = DBConnectionPool.getPoolConnection();

@@ -16,12 +16,14 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -36,28 +38,31 @@ public class AnswerBox {
     protected Stage window;
     protected Scene scene;
     protected VBox layout;
+    private Label messageLabel;
     private TextField answerField;
     private ToggleGroup toggleGroup;
     private String answer;
     
+    enum Orientation { LANDSCAPE, PORTRAIT };
+    
     public String display (String title, String message, String defaultAnswer) {
         init(title, message);
+        double width = 250;
+        double height = 160;
         
-        window.setMinWidth(250);
-        window.setMinHeight(160);
-        window.setResizable(false);
+        window.setMinWidth(width);
+        window.setMinHeight(height);
+        layout.setPadding(new Insets(0, 10, 10, 10));
         
         // ============================  Body  ===========================
         answerField = new TextField(defaultAnswer);
+//        answerField.setMaxWidth(100);
+//        answerField.setM
         String answer = null;
         
         layout.getChildren().addAll(answerField);
-        window.setOnCloseRequest(e -> {
-            answerField.setText(null);
-            window.close();
-        });
         
-        // ==========================  Buttons  ==========================
+        //      =====================  Buttons  =====================
         Button confirmButton = new Button("OK");
         confirmButton.setOnAction(e -> window.close());
         
@@ -72,6 +77,24 @@ public class AnswerBox {
         buttonBox.getChildren().addAll(confirmButton, cancelButton);
         layout.getChildren().add(buttonBox);
         
+        // ==========================  Sizing  ===========================
+        //  Get width based on Orientation parameter and the Golden Ratio:
+        height += 20;
+        width = height * 1.618;
+        window.setMinHeight(height);
+        window.setMinWidth(width);
+//        window.setResizable(false);
+        
+        //  The following makes messageLabel grow to its preferred size, and
+        //  then increases the window's height by the amount messageLabel itself
+        //  increased:
+        messageLabel.setMinHeight(Control.USE_PREF_SIZE);
+        
+        // =========================  Finalize  ==========================
+        window.setOnCloseRequest(e -> {
+            answerField.setText(null);
+            window.close();
+        });
         window.setScene(scene);
         window.initModality(Modality.APPLICATION_MODAL);
         window.showAndWait();
@@ -88,11 +111,12 @@ public class AnswerBox {
         scene = new Scene(layout, 200, 100);
         
         // ============================  Body  ===========================
-        Label messageLabel = new Label(message);
+        messageLabel = new Label(message);
         messageLabel.setWrapText(true);
         layout.getChildren().addAll(messageLabel);
         
     }
+    
     
     
     /**
@@ -103,7 +127,7 @@ public class AnswerBox {
      * @param answers
      * @return 
      */
-    public String display (String title, String message, ObservableList<String> answers) {
+    public String display (String title, String message, ObservableList<String> answers, Orientation orientation) {
         init(title, message);
         
         // ============================  Body  ===========================
@@ -121,12 +145,30 @@ public class AnswerBox {
             rows++;
         }
         
-        int height = 60 + (40 * rows);
-        double width = Math.sqrt((1+height)*height);
+        int height = 80 + (40 * rows);
+        double width;
+        //  Get width based on Orientation parameter and the Golden Ratio:
+        if (orientation == Orientation.LANDSCAPE) {
+            width = height * 1.618;
+        } else {
+            width = height / 1.618;
+        }
         
         window.setMinHeight(height);
         window.setMinWidth(width);
-        window.setResizable(false);
+//        window.setResizable(false);
+        
+        //  DEBUG:
+        System.out.printf("\n[AnswerBox.display()]\nheight: %s\nwidth: %s\n", height, width);
+        
+        //  The following makes messageLabel grow to its preferred size, and
+        //  then increases the window's height by the amount messageLabel itself
+        //  increased:
+        messageLabel.setMinHeight(Control.USE_PREF_SIZE);
+        
+        //  DEBUG:
+//        System.out.printf("\n[AnswerBox.display()]\nheight difference: %s\n", messageHeight);
+        
         
         window.setOnCloseRequest(e -> {
             answer = null;

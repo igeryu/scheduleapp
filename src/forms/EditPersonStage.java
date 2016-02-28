@@ -4,6 +4,9 @@
  * Changelog:
  * 2016-02-25 : Created class using AddPersonStage as template
  * 2016-02-25 : Added confirmChangeItem(Item) and confirmChangeItem(Item, ObservableList<String>)
+ * 
+ * 2016-02-27 : Added functionality for changing: workcenter, shift, rank, last name and skill level
+ * 2016-02-27 : Added deleteButton and implemented functionality
  */
 
 package forms;
@@ -14,6 +17,7 @@ import domain.RankDAO;
 import domain.ShiftDAO;
 import domain.SkillDAO;
 import domain.WorkcenterDAO;
+import forms.AnswerBox.Orientation;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -68,31 +72,31 @@ public class EditPersonStage {
         }
     };
     
-    private static void setupButton(Button button, Item item) {
+    private static void setupButton(Button button, Item item, Orientation orientation) {
         button.setOnAction(e -> {
             ObservableList<String> list = null;
             
             switch(item) {
                 case RANK:
-                    list = (new RankDAO()).getRanksList();
+                    list = (new RankDAO()).getList();
                     break;
                 
                 case SHIFT:
-                    list = (new ShiftDAO()).getShiftsList();
+                    list = (new ShiftDAO()).getList();
                     break;
                 
                 case SKILL:
-                    list = (new SkillDAO()).getSkillsList();
+                    list = (new SkillDAO()).getList();
                     break;
                 
                 case WORKCENTER:
-                    list = (new WorkcenterDAO()).getWorkcentersList();
+                    list = (new WorkcenterDAO()).getList();
                     break;
                 
                 default: throw new IllegalArgumentException();
             }
             
-            String newValue = confirmChangeItem(item, list);
+            String newValue = confirmChangeItem(item, list, orientation);
             
             if (newValue != null && !newValue.equals("")) {
                 switch(item) {
@@ -142,7 +146,7 @@ public class EditPersonStage {
         return newValue;
     }
     
-    private static String confirmChangeItem (Item item, ObservableList<String> options) {
+    private static String confirmChangeItem (Item item, ObservableList<String> options, Orientation orientation) {
         String title = String.format("Change %s %s %s's %s?",
                                      person.getRank(),
                                      person.getFirstName(),
@@ -155,7 +159,7 @@ public class EditPersonStage {
                                      person.getLastName(),
                                      item);
         
-        String newValue = (new AnswerBox()).display(title, message, options);
+        String newValue = (new AnswerBox()).display(title, message, options, orientation);
         
         // DEBUG:
         System.out.printf("\n[EditPersonStage.confirmChangeItem()] answer: %s\n", newValue);
@@ -165,7 +169,7 @@ public class EditPersonStage {
     
     public static void display () {
         //  DEBUG/TESTING:
-        person = new Person("First_Name", "Last_Name", "rank", "skill");
+        person = new Person("First_Name", "Last_Name", "SSgt", "5");
         
         Stage window = new Stage();
         //  TODO: [maybe] Change this line to have the person's name:
@@ -215,7 +219,7 @@ public class EditPersonStage {
         Label lastNameLabel = new Label("Last Name");
         GridPane.setConstraints(lastNameLabel, 1, 2);
         
-        Label skillLabel = new Label("Skill Level");
+        Label skillLabel = new Label("Skill Lv");
         GridPane.setConstraints(skillLabel, 2, 2);
         
         inputPane.getChildren().addAll(workcenterLabel, shiftLabel,
@@ -228,13 +232,17 @@ public class EditPersonStage {
         //           ==================  1st  Row  ==================
         workcenterButton = new Button(person.getWorkcenter());
         workcenterButton.setMinWidth(100);
-        setupButton(workcenterButton, Item.WORKCENTER);
+        setupButton(workcenterButton, Item.WORKCENTER, Orientation.PORTRAIT);
         GridPane.setConstraints(workcenterButton, 0, 1);
         
-        shiftButton = new Button("Shift");
+        shiftButton = new Button(person.getShift());
+        shiftButton.setMinWidth(50);
+        setupButton(shiftButton, Item.SHIFT, Orientation.PORTRAIT);
         GridPane.setConstraints(shiftButton, 1, 1);
         
-        rankButton = new Button("Rank");
+        rankButton = new Button(person.getRank());
+        rankButton.setMinWidth(20);
+        setupButton(rankButton, Item.RANK, Orientation.PORTRAIT);
         GridPane.setConstraints(rankButton, 2, 1);
         
         startDateBox = new DatePicker();
@@ -252,15 +260,27 @@ public class EditPersonStage {
                 });
         GridPane.setConstraints(firstNameButton, 0, 3);
         
-        lastNameButton = new Button();
+        lastNameButton = new Button(person.getLastName());
+        lastNameButton.setOnAction(e -> {
+            String newValue = confirmChangeItem(Item.LAST_NAME);
+            
+            if (newValue != null && !newValue.equals("")) {
+                person.setLastName(newValue);
+                lastNameButton.setText(newValue);
+            }
+                });
         GridPane.setConstraints(lastNameButton, 1, 3);
         
-        skillButton = new Button("Skill Lv");
+        skillButton = new Button(person.getSkill());
+        skillButton.setMinWidth(10);
+        setupButton(skillButton, Item.SKILL, Orientation.PORTRAIT);
         GridPane.setConstraints(skillButton, 2, 3);
         
         //           ==================  3rd  Row  ==================
+        
+        //                ===========  Save  Button  ===========
         Button saveButton = new Button("Save");
-        //  TODO:  Add functionality to saveButton
+        //  TODO:  Fix functionality for saveButton
         saveButton.setOnAction(e -> {
             String firstName = firstNameButton.getText();
             String lastName = lastNameButton.getText();
@@ -275,16 +295,54 @@ public class EditPersonStage {
         saveButtonPane.setPadding(new Insets(20, 0, 0, 0));
         saveButtonPane.getChildren().add(saveButton);
         
+        //                ==========  Delete  Button  ==========
+        Button deleteButton = new Button("Delete");
+        deleteButton.setOnAction(e -> {
+            String title = "Delete";
+            
+            String message = String.format("Delete %s %s %s?", person.getRank(),
+                                                               person.getFirstName(),
+                                                               person.getLastName());
+            
+            message += "\nPlease type 'delete' in the box to confirm, and "
+                       + "click OK.";
+            
+            String answer = (new AnswerBox()).display(title, message);
+            
+            if (answer == null) {
+                return;
+            } else if(answer.equals("delete")) {
+                (new PersonDAO_New()).delete(person);
+                
+                title = "Person deleted";
+                message = String.format("%s %s %s was deleted.",
+                                        person.getRank(),
+                                        person.getFirstName(),
+                                        person.getLastName());
+                
+                AlertBox.display(title, message);
+                window.close();
+            } else {
+                title = "Deletion unsuccessful";
+                message = String.format("%s %s %s was not deleted.",
+                                        person.getRank(),
+                                        person.getFirstName(),
+                                        person.getLastName());
+                
+                AlertBox.display(title, message);
+            }
+        });
+        deleteButton.setAlignment(Pos.CENTER);
+        StackPane deleteButtonPane = new StackPane();
+        GridPane.setConstraints(deleteButtonPane, 0, 5, 4, 1);
+        deleteButtonPane.setPadding(new Insets(20, 0, 0, 0));
+        deleteButtonPane.getChildren().add(deleteButton);
+        
         inputPane.getChildren().addAll(workcenterButton, shiftButton,
                                        rankButton, startDateBox,
                                        firstNameButton, lastNameButton,
-                                       skillButton, saveButtonPane);
-        
-        // ===========================  Table Area  ===========================
-        VBox tableBox = new VBox(10);
-        tableBox.setAlignment(Pos.CENTER);
-        tableBox.setPadding(new Insets(10, 30, 30, 30));
-        rootLayout.getChildren().add(tableBox);
+                                       skillButton, saveButtonPane,
+                                       deleteButtonPane);
         
         // =============================  Finish  =============================
         window.initModality(Modality.APPLICATION_MODAL);

@@ -1,8 +1,10 @@
 //  SkillDAO.java
 
 /**
- * 2016-02-24 : Added getSkillsList() method
- * 2016-02-24 : Added getSkillsMap() method
+ * 2016-02-24 : Added getList() method
+ * 2016-02-24 : Added getMap() method
+ * 
+ * 2016-02-24 : Added getMapReversed() method
  */
 
 /**
@@ -15,7 +17,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class SkillDAO {
 
     private static final String GET_STATEMENT = "SELECT * "
             + "FROM skill";
-    public ObservableList<String> getSkillsList() {
+    public ObservableList<String> getList() {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -43,13 +44,13 @@ public class SkillDAO {
             request = conn.prepareStatement(GET_STATEMENT);
 
             ResultSet rset = request.executeQuery();
-            ArrayList<String> skillList = new ArrayList<>();
+            ArrayList<String> list = new ArrayList<>();
             
             while (rset.next()) {
-                skillList.add(rset.getString("level"));
+                list.add(rset.getString("level"));
             }
             
-            return FXCollections.observableArrayList(skillList);
+            return FXCollections.observableArrayList(list);
 
         } catch (SQLException se) {
             System.out.println("\nA database error occurred. " + se.getMessage());
@@ -78,7 +79,7 @@ public class SkillDAO {
     }
     
     
-    public Map<Integer, String> getSkillsMap() {
+    public Map<Integer, String> getMap() {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -88,14 +89,14 @@ public class SkillDAO {
             request = conn.prepareStatement(GET_STATEMENT);
 
             ResultSet rset = request.executeQuery();
-            HashMap<Integer, String> skillList = new HashMap<>();
+            HashMap<Integer, String> list = new HashMap<>();
             
             int number = 1;
             while (rset.next()) {
-                skillList.put(number++, rset.getString("level"));
+                list.put(number++, rset.getString("level"));
             }
             
-            return skillList;
+            return list;
 
         } catch (SQLException se) {
             System.out.println("\nA database error occurred. " + se.getMessage());
@@ -123,8 +124,18 @@ public class SkillDAO {
         return null;
     }
     
+    public Map<String, Integer> getMapReversed() {
+        Map<Integer, String> orderedMap = getMap();
+        Map<String, Integer> reversedMap = new HashMap<>();
+        
+        for (Integer key : orderedMap.keySet()) {
+            reversedMap.put((String)orderedMap.get(key), key);
+        }
+        
+        return reversedMap;
+    }
     
-    public ComboBoxModel getSkillsBox() {
+    public ComboBoxModel getComboModel() {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -135,15 +146,15 @@ public class SkillDAO {
             request = conn.prepareStatement(GET_STATEMENT);
 
             ResultSet rset = request.executeQuery();
-            ArrayList<String> skillList = new ArrayList<>();
+            ArrayList<String> list = new ArrayList<>();
             
             while (rset.next()) {
-                skillList.add(rset.getString("level"));
+                list.add(rset.getString("level"));
             }
             
-            String[] skillArray = (String[]) skillList.toArray(new String[0]);
+            String[] array = (String[]) list.toArray(new String[0]);
             
-            return new DefaultComboBoxModel(skillArray);
+            return new DefaultComboBoxModel(array);
 
         } catch (SQLException se) {
             System.out.println("\nA database error occurred. " + se.getMessage());

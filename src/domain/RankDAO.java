@@ -2,8 +2,10 @@
 
 /**
  * Changelog:
- * 2016-02-24 : Added getRanksList() method
- * 2016-02-24 : Added getRanksMap() method
+ * 2016-02-24 : Added getList() method
+ * 2016-02-24 : Added getMap() method
+ * 
+ * 2016-02-27 : Added getMapReversed() method
  */
 
 /**
@@ -34,7 +36,7 @@ public class RankDAO {
 
     private static final String GET_STATEMENT = "SELECT * "
             + "FROM rank";
-    public ObservableList<String> getRanksList() {
+    public ObservableList<String> getList() {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -78,7 +80,7 @@ public class RankDAO {
         return null;
     }
     
-    public Map<Integer, String> getRanksMap() {
+    public Map<Integer, String> getMap() {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -124,7 +126,19 @@ public class RankDAO {
     }
     
     
-    public ComboBoxModel getRanksBox() {
+    public Map<String, Integer> getMapReversed() {
+        Map<Integer, String> orderedMap = getMap();
+        Map<String, Integer> reversedMap = new HashMap<>();
+        
+        for (Integer key : orderedMap.keySet()) {
+            reversedMap.put((String)orderedMap.get(key), key);
+        }
+        
+        return reversedMap;
+    }
+    
+    
+    public ComboBoxModel getComboModel() {
         
         PreparedStatement request = null;
         Connection conn = null;

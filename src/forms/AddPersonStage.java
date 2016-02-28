@@ -116,7 +116,7 @@ public class AddPersonStage {
         //      ========================  Inputs  ========================
         
         //           ==================  1st  Row  ==================
-        workcenterBox = new ChoiceBox((new WorkcenterDAO()).getWorkcentersList());
+        workcenterBox = new ChoiceBox((new WorkcenterDAO()).getList());
         workcenterBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             public void changed(ObservableValue ov, Number oldValue, Number newValue) {
                 updateAllTables();
@@ -124,10 +124,10 @@ public class AddPersonStage {
         });
         GridPane.setConstraints(workcenterBox, 0, 1);
         
-        shiftBox = new ChoiceBox((new ShiftDAO()).getShiftsList());
+        shiftBox = new ChoiceBox((new ShiftDAO()).getList());
         GridPane.setConstraints(shiftBox, 1, 1);
         
-        rankBox = new ChoiceBox((new RankDAO()).getRanksList());
+        rankBox = new ChoiceBox((new RankDAO()).getList());
         GridPane.setConstraints(rankBox, 2, 1);
         
         startDateBox = new DatePicker();
@@ -140,7 +140,7 @@ public class AddPersonStage {
         lastNameField = new TextField();
         GridPane.setConstraints(lastNameField, 1, 3);
         
-        skillBox = new ChoiceBox((new SkillDAO()).getSkillsList());
+        skillBox = new ChoiceBox((new SkillDAO()).getList());
         GridPane.setConstraints(skillBox, 2, 3);
         
         //           ==================  3rd  Row  ==================
