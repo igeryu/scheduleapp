@@ -7,17 +7,25 @@
  * 
  * 2016-02-27 : Added functionality for changing: workcenter, shift, rank, last name and skill level
  * 2016-02-27 : Added deleteButton and implemented functionality
+ * 
+ * 2016-02-28 : Attempting to save a change to workcenter but with no start date chosen will result in an error message
+ * 2016-02-28 : Saving a change to workcenter WITH a start date will successfully change the workcenter and add a new start date
  */
 
-package forms;
+package window;
 
+import window.modal.AnswerBox;
+import window.modal.AlertBox;
 import domain.Person;
-import domain.PersonDAO_New;
+import domain.PersonDAO;
 import domain.RankDAO;
 import domain.ShiftDAO;
+import domain.ShiftDateDAO;
 import domain.SkillDAO;
 import domain.WorkcenterDAO;
-import forms.AnswerBox.Orientation;
+import java.sql.Date;
+import java.time.LocalDate;
+import window.modal.AnswerBox.Orientation;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -53,7 +61,9 @@ public class EditPersonStage {
     private static Button workcenterButton;
     
     // ============================  Misc  ===========================
+    private static Stage window;
     private static Person person;
+    private static boolean shiftChanged = false;
     private enum Shift { MIDS, DAYS, SWINGS};
     private enum Item {
         FIRST_NAME, LAST_NAME, RANK, SHIFT, SKILL, WORKCENTER;
@@ -83,6 +93,7 @@ public class EditPersonStage {
                 
                 case SHIFT:
                     list = (new ShiftDAO()).getList();
+                    shiftChanged = true;
                     break;
                 
                 case SKILL:
@@ -99,25 +110,25 @@ public class EditPersonStage {
             String newValue = confirmChangeItem(item, list, orientation);
             
             if (newValue != null && !newValue.equals("")) {
-                switch(item) {
-                case RANK:
-                    person.setRank(newValue);
-                    break;
-                
-                case SHIFT:
-                    person.setShift(newValue);
-                    break;
-                
-                case SKILL:
-                    person.setSkill(newValue);
-                    break;
-                
-                case WORKCENTER:
-                    person.setWorkcenter(newValue);
-                    break;
-                
-                default:
-            }
+//                switch(item) {
+//                case RANK:
+//                    person.setRank(newValue);
+//                    break;
+//                
+//                case SHIFT:
+//                    person.setShift(newValue);
+//                    break;
+//                
+//                case SKILL:
+//                    person.setSkill(newValue);
+//                    break;
+//                
+//                case WORKCENTER:
+//                    person.setWorkcenter(newValue);
+//                    break;
+//                
+//                default:
+//            }
                 
                 
                 button.setText(newValue);
@@ -171,7 +182,7 @@ public class EditPersonStage {
         //  DEBUG/TESTING:
         person = new Person("First_Name", "Last_Name", "SSgt", "5");
         
-        Stage window = new Stage();
+        window = new Stage();
         //  TODO: [maybe] Change this line to have the person's name:
         window.setTitle("Edit Person");
         Pane rootLayout = new VBox(20);
@@ -282,12 +293,7 @@ public class EditPersonStage {
         Button saveButton = new Button("Save");
         //  TODO:  Fix functionality for saveButton
         saveButton.setOnAction(e -> {
-            String firstName = firstNameButton.getText();
-            String lastName = lastNameButton.getText();
-            
-            //  TODO:  Acquire start date data and use it as part of input requirements
-
-            PersonDAO_New personDao = new PersonDAO_New();
+            saveChanges();
         });
         saveButton.setAlignment(Pos.CENTER);
         StackPane saveButtonPane = new StackPane();
@@ -312,7 +318,7 @@ public class EditPersonStage {
             if (answer == null) {
                 return;
             } else if(answer.equals("delete")) {
-                (new PersonDAO_New()).delete(person);
+                (new PersonDAO()).delete(person);
                 
                 title = "Person deleted";
                 message = String.format("%s %s %s was deleted.",
@@ -348,6 +354,36 @@ public class EditPersonStage {
         window.initModality(Modality.APPLICATION_MODAL);
         window.showAndWait();
     
+    }
+    
+    private static void saveChanges() {
+        
+        // ====================  Check for  Shift Changes  ====================
+        if (shiftChanged && startDateBox.getValue() == null) {
+            String title = "New shift start date";
+            String message = "Please select a start date.";
+            (new AlertBox()).display(title, message);
+            return;
+        }
+        
+        // ===========================  Get Inputs  ===========================
+        String    firstName      =  firstNameButton.getText();
+        String    lastName       =   lastNameButton.getText();
+        String    rank           =       rankButton.getText();
+        String    workcenter     = workcenterButton.getText();
+        String    shift          =      shiftButton.getText();
+        String    skill          =      skillButton.getText();
+        LocalDate startLocalDate =     startDateBox.getValue();
+        
+        // =====================  Make Changes to Person  =====================
+        person.setAll(firstName, lastName, rank, workcenter, shift,  skill);
+        (new PersonDAO()).updatePerson(person);
+        if (shiftChanged) {
+            (new ShiftDateDAO()).addStartDate(person, Date.valueOf(startLocalDate));
+            shiftChanged = false;
+        }
+        //  TODO:  Should the Edit Person window stay open after a successful save?
+        window.close();
     }
     
   

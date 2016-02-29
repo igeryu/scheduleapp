@@ -8,6 +8,9 @@
  * 
  * 2016-02-27 : Changed setRank(), setShift() and setSkill() to also update rank_id, shift_id and skill_id, respectively
  * 2016-02-27 : Added setWorkcenter_ID() and setShift_ID()
+ * 
+ * 2016-02-28 : Added setAll() method
+ * 2016-02-28 : Modified setWorkcenter() to match other setters (updates workcenter as well as workcenter_id)
  */
 
 /**
@@ -54,6 +57,15 @@ public class Person implements java.io.Serializable {
         setWorkcenter_ID(wcID);
         setShift_ID(shID);
         skill_id = skID;
+    }
+    
+    public void setAll(String fn, String ln, String rn, String wc, String sh, String sk) {
+        setFirstName(fn);
+        setLastName(ln);
+        setRank(rn);
+        setWorkcenter(wc);
+        setShift(sh);
+        setSkill(sk);
     }
 
     public void setFirstName(String n) {
@@ -139,6 +151,9 @@ public class Person implements java.io.Serializable {
      */
     public void setWorkcenter(String workcenter) {
         this.workcenter = workcenter;
+        
+        Map<String, Integer> mapReversed = (new WorkcenterDAO()).getMapReversed();
+        workcenter_id = mapReversed.get(workcenter);
     }
     
     private void setWorkcenter_ID (Integer workcenter_id) {

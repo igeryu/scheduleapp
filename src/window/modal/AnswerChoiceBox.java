@@ -4,7 +4,7 @@
  * Changelog:
  * 2016-02-25 : Created file
  */
-package forms;
+package window.modal;
 
 /**
  *

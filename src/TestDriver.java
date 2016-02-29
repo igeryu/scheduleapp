@@ -1,16 +1,12 @@
 
-import domain.Person;
-import domain.PersonDAO;
-import forms.AddPersonStage;
-import forms.EditPersonStage;
-import java.util.ArrayList;
+import window.AddPersonStage;
+import window.EditPersonStage;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import util.DBConnectionPool;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

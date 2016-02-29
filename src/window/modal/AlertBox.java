@@ -5,7 +5,7 @@
  * 2016-02-25 : Created file
  */
 
-package forms;
+package window.modal;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -55,7 +55,7 @@ public class AlertBox {
         
         window.setMinHeight(height);
         window.setMinWidth(width);
-//        window.setResizable(false);
+        window.setResizable(false);
         
         //  The following makes messageLabel grow to its preferred size, and
         //  then increases the window's height by the amount messageLabel itself

@@ -5,7 +5,7 @@
  * 2016-02-25 : Created class, added display(String, String, String) and display(String, String)
  */
 
-package forms;
+package window.modal;
 
 
 import java.lang.Math;
@@ -43,7 +43,7 @@ public class AnswerBox {
     private ToggleGroup toggleGroup;
     private String answer;
     
-    enum Orientation { LANDSCAPE, PORTRAIT };
+    public enum Orientation { LANDSCAPE, PORTRAIT };
     
     public String display (String title, String message, String defaultAnswer) {
         init(title, message);

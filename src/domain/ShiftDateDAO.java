@@ -1,6 +1,11 @@
-//  PersonDAO.java
+//  ShiftDateDAO.java
+
 /**
- *
+ * Changelog:
+ * 2016-02-28 : Corrected insert() so that it works
+ */
+
+/**
  * @author Alan Johnson
  */
 package domain;
@@ -10,12 +15,8 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import javax.swing.table.TableModel;
-import net.proteanit.sql.DbUtils;
 import util.DBConnectionPool;
 
 public class ShiftDateDAO {
@@ -144,7 +145,12 @@ public class ShiftDateDAO {
     
     private static final String INSERT_STMT = "INSERT INTO shift_date "
             + "VALUES (?, ?, ?, ?)";
-    
+    /**
+     * 
+     * @param person_id
+     * @param shift_id
+     * @param date 
+     */
     public void insert(Integer person_id, Integer shift_id, Date date) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -159,6 +165,7 @@ public class ShiftDateDAO {
             stmt.setInt(1, shiftDateID);
             stmt.setInt(2, person_id);
             stmt.setDate(3, date);
+            stmt.setInt(4, shift_id);
             stmt.executeUpdate();
             
             //  DEBUG:
@@ -201,12 +208,12 @@ public class ShiftDateDAO {
      * @param ph
      * @return 
      */
-    public boolean addStartDate(Person person, Integer shift, Date date) {
-        if (person == null || shift == null || date == null) {
+    public boolean addStartDate(Person person, Date date) {
+        if (person == null || date == null) {
             return false;
         }
 
-        insert(person.getObjectID(), shift, date);
+        insert(person.getObjectID(), person.getShiftID(), date);
 
         return true;
     }
