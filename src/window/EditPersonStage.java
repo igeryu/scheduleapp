@@ -10,6 +10,13 @@
  * 
  * 2016-02-28 : Attempting to save a change to workcenter but with no start date chosen will result in an error message
  * 2016-02-28 : Saving a change to workcenter WITH a start date will successfully change the workcenter and add a new start date
+ * 
+ * 2016-02-29 : Extracted action handler code from deleteButton to a deletePerson() method  (Also added extra line break to confirmation message)
+ * 2016-02-29 : Refactoring: Removed unused imports, removed unuse switch-statement in setupButton()
+ * 2016-02-29 : Added Javadoc for: both confirmChangeItem() methods, deletePerson(), display(), saveChanges(), setupButton()
+ * 2016-02-29 : Adjusted popup window title for both confirmChangeItem() methods
+ * 2016-02-29 : Added Person parameter to display() method
+ * 2016-02-29 : Reordered method declarations so that they are in alphabetic order
  */
 
 package window;
@@ -33,10 +40,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -82,66 +85,19 @@ public class EditPersonStage {
         }
     };
     
-    private static void setupButton(Button button, Item item, Orientation orientation) {
-        button.setOnAction(e -> {
-            ObservableList<String> list = null;
-            
-            switch(item) {
-                case RANK:
-                    list = (new RankDAO()).getList();
-                    break;
-                
-                case SHIFT:
-                    list = (new ShiftDAO()).getList();
-                    shiftChanged = true;
-                    break;
-                
-                case SKILL:
-                    list = (new SkillDAO()).getList();
-                    break;
-                
-                case WORKCENTER:
-                    list = (new WorkcenterDAO()).getList();
-                    break;
-                
-                default: throw new IllegalArgumentException();
-            }
-            
-            String newValue = confirmChangeItem(item, list, orientation);
-            
-            if (newValue != null && !newValue.equals("")) {
-//                switch(item) {
-//                case RANK:
-//                    person.setRank(newValue);
-//                    break;
-//                
-//                case SHIFT:
-//                    person.setShift(newValue);
-//                    break;
-//                
-//                case SKILL:
-//                    person.setSkill(newValue);
-//                    break;
-//                
-//                case WORKCENTER:
-//                    person.setWorkcenter(newValue);
-//                    break;
-//                
-//                default:
-//            }
-                
-                
-                button.setText(newValue);
-            }
-                });
-    }
     
+    // ===========================  Methods  =========================
+    /**
+     * <p>Calls an <code>AnswerBox</code> instance to retrieve user's new value
+     * for the given person record item.  The item to be modified is indicated
+     * by the <code>Item</code> parameter.</p>
+     * 
+     * @param item     type of item being modified
+     * 
+     * @return         new value for the item being modified
+     */
     private static String confirmChangeItem (Item item) {
-        String title = String.format("Change %s %s %s's %s?",
-                                     person.getRank(),
-                                     person.getFirstName(),
-                                     person.getLastName(),
-                                     item);
+        String title = String.format("Change %s?", item);
         
         String message = String.format("Change %s %s %s's %s to?",
                                      person.getRank(),
@@ -152,17 +108,27 @@ public class EditPersonStage {
         String newValue = (new AnswerBox()).display(title, message);
         
         // DEBUG:
-        System.out.printf("\n[EditPersonStage.confirmChangeItem()] answer: %s\n", newValue);
+//        System.out.printf("\n[EditPersonStage.confirmChangeItem()] answer: %s\n", newValue);
         
         return newValue;
-    }
+    }  //  end method confirmChangeItem(Item)
     
+    /**
+     * <p>Calls an <code>AnswerBox</code> instance to retrieve user's new value
+     * for the given person record item.  The item to be modified is indicated
+     * by the <code>Item</code> parameter.</p>
+     * 
+     * <p>The list of available options is given to the <code>AnswerBox</code>
+     * instance via the <code>ObservableList<String></code> parameter</p>
+     * 
+     * @param item            type of item being modified
+     * @param options         option choices supplied to the
+     *                        <code>AnswerBox</code> instance
+     * @param orientation     preferred orientation of pop-up input window
+     * @return                new value for the item being modified
+     */
     private static String confirmChangeItem (Item item, ObservableList<String> options, Orientation orientation) {
-        String title = String.format("Change %s %s %s's %s?",
-                                     person.getRank(),
-                                     person.getFirstName(),
-                                     person.getLastName(),
-                                     item);
+        String title = String.format("Change %s?", item);
         
         String message = String.format("Change %s %s %s's %s to?",
                                      person.getRank(),
@@ -173,12 +139,56 @@ public class EditPersonStage {
         String newValue = (new AnswerBox()).display(title, message, options, orientation);
         
         // DEBUG:
-        System.out.printf("\n[EditPersonStage.confirmChangeItem()] answer: %s\n", newValue);
+//        System.out.printf("\n[EditPersonStage.confirmChangeItem()] answer: %s\n", newValue);
         
         return newValue;
     }
     
-    public static void display () {
+    /**
+     * <p>Deletes the person represented by the <code>person</code> static field
+     * from the database.</p>
+     */
+    private static void deletePerson() {
+        String title = "Delete";
+        
+        String message = String.format("Delete %s %s %s?", person.getRank(),
+                person.getFirstName(),
+                person.getLastName());
+        
+        message += "\n\nPlease type 'delete' in the box to confirm, and "
+                + "click OK.";
+        
+        String answer = (new AnswerBox()).display(title, message);
+        
+        if (answer == null) {
+            return;
+        } else if(answer.equals("delete")) {
+            (new PersonDAO()).delete(person);
+            
+            title = "Person deleted";
+            message = String.format("%s %s %s was deleted.",
+                    person.getRank(),
+                    person.getFirstName(),
+                    person.getLastName());
+            
+            AlertBox.display(title, message);
+            window.close();
+        } else {
+            title = "Deletion unsuccessful";
+            message = String.format("%s %s %s was not deleted.",
+                    person.getRank(),
+                    person.getFirstName(),
+                    person.getLastName());
+            
+            AlertBox.display(title, message);
+        }
+    }  //  end deletePerson() method
+    
+    /**
+     * <p>Displays the 'Edit Person' stage (window) using the given
+     * <code>Person</code> parameter.</p>
+     */
+    public static void display (Person inpuPerson) {
         //  DEBUG/TESTING:
         person = new Person("First_Name", "Last_Name", "SSgt", "5");
         
@@ -303,41 +313,7 @@ public class EditPersonStage {
         
         //                ==========  Delete  Button  ==========
         Button deleteButton = new Button("Delete");
-        deleteButton.setOnAction(e -> {
-            String title = "Delete";
-            
-            String message = String.format("Delete %s %s %s?", person.getRank(),
-                                                               person.getFirstName(),
-                                                               person.getLastName());
-            
-            message += "\nPlease type 'delete' in the box to confirm, and "
-                       + "click OK.";
-            
-            String answer = (new AnswerBox()).display(title, message);
-            
-            if (answer == null) {
-                return;
-            } else if(answer.equals("delete")) {
-                (new PersonDAO()).delete(person);
-                
-                title = "Person deleted";
-                message = String.format("%s %s %s was deleted.",
-                                        person.getRank(),
-                                        person.getFirstName(),
-                                        person.getLastName());
-                
-                AlertBox.display(title, message);
-                window.close();
-            } else {
-                title = "Deletion unsuccessful";
-                message = String.format("%s %s %s was not deleted.",
-                                        person.getRank(),
-                                        person.getFirstName(),
-                                        person.getLastName());
-                
-                AlertBox.display(title, message);
-            }
-        });
+        deleteButton.setOnAction(e -> deletePerson() );
         deleteButton.setAlignment(Pos.CENTER);
         StackPane deleteButtonPane = new StackPane();
         GridPane.setConstraints(deleteButtonPane, 0, 5, 4, 1);
@@ -354,8 +330,13 @@ public class EditPersonStage {
         window.initModality(Modality.APPLICATION_MODAL);
         window.showAndWait();
     
-    }
+    }  //  end method display(Person)
     
+    /**
+     * <p>After verifying data inputs, this method saves the changes made to the
+     * person by calling the <code>PersonDAO.updatePerson()</code> and
+     * <code>ShiftDateDAO.addStartDate()</code> methods.</p>
+     */
     private static void saveChanges() {
         
         // ====================  Check for  Shift Changes  ====================
@@ -384,8 +365,47 @@ public class EditPersonStage {
         }
         //  TODO:  Should the Edit Person window stay open after a successful save?
         window.close();
-    }
+    }  // end method saveChanges()
     
-  
+    /**
+     * <p>Sets up the given button according to a template and based on the
+     * given <code>Item</code> and <code>Orientation</code> parameters</p>
+     * 
+     * @param button          button being setup
+     * @param item            type of item being retrieved from the user
+     * @param orientation     preferred orientation of modal dialog window
+     */
+    private static void setupButton(Button button, Item item, Orientation orientation) {
+        button.setOnAction(e -> {
+            ObservableList<String> list = null;
+            
+            switch(item) {
+                case RANK:
+                    list = (new RankDAO()).getList();
+                    break;
+                
+                case SHIFT:
+                    list = (new ShiftDAO()).getList();
+                    shiftChanged = true;
+                    break;
+                
+                case SKILL:
+                    list = (new SkillDAO()).getList();
+                    break;
+                
+                case WORKCENTER:
+                    list = (new WorkcenterDAO()).getList();
+                    break;
+                
+                default: throw new IllegalArgumentException();
+            }
+            
+            String newValue = confirmChangeItem(item, list, orientation);
+            
+            if (newValue != null && !newValue.equals("")) {
+                button.setText(newValue);
+            }
+                });
+    }  //  end method setupButton()
     
 }

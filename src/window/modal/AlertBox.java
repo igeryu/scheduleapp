@@ -3,6 +3,9 @@
 /**
  * Changelog:
  * 2016-02-25 : Created file
+ * 
+ * 2016-02-29 : Removed unused imports
+ * 2016-02-29 : Added Javadoc for display()
  */
 
 package window.modal;
@@ -13,9 +16,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -26,6 +27,13 @@ import javafx.stage.Stage;
  */
 public class AlertBox {
     
+    /**
+     * <p>Displays a window to let the user know some piece of information,
+     * without asking for a hard confirmation.</p>
+     * 
+     * @param title       title of the pop-up window
+     * @param message     message to be relayed to the user
+     */
     public static void display (String title, String message) {
         Stage window = new Stage();
         window.setTitle(title);

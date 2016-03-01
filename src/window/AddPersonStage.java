@@ -16,6 +16,10 @@
  * 2016-02-28 : The addPerson() method now also adds a start date for the added person
  * 2016-02-28 : Added closeWindow() method to consult user whenever entered data will be lost
  * 2016-02-28 : Added cancelButton that calls closeWindow()
+ * 
+ * 2016-02-29 : Added Javadoc for: addPerson(), closeWindow(), display(), updateAllTables(), updateTables()
+ * 2016-02-29 : Updated addPerson() so that the ChoiceBoxes are cleared out after a successful add
+ * 2016-02-29 : Reordered method declarations so that they are in alphabetic order
  */
 
 package window;
@@ -73,6 +77,87 @@ public class AddPersonStage {
     // ============================  Misc  ===========================
     private static Stage window;
 
+    
+    // ============================  Misc  ===========================
+    private enum Shift { MIDS, DAYS, SWINGS};
+    
+    // ===========================  Methods  =========================
+    
+    /**
+     * <p>Checks the inputted data for validity, then creates a new
+     * <code>Person</code> instance from that data, and finally calls
+     * <code>PersonDAO.addPerson()</code> to add the new person and new start
+     * date.</p>
+     */
+    private static void addPerson() {
+        
+        // =======================  Gather  Inputs  ======================
+        String firstName = firstNameField.getText();
+        String lastName = lastNameField.getText();
+        Integer workcenterID = workcenterBox.getSelectionModel().getSelectedIndex() + 1;
+        Integer shiftID = shiftBox.getSelectionModel().getSelectedIndex() + 1;
+        Integer rankID = rankBox.getSelectionModel().getSelectedIndex() + 1;
+        Integer skillID = skillBox.getSelectionModel().getSelectedIndex() + 1;
+        LocalDate startLocalDate = startDateBox.getValue();
+        
+        // =======================  Verify  Inputs  ======================
+        if        (firstName.equals("") || lastName.equals("")
+                || workcenterID < 1     || shiftID < 1
+                || rankID < 1           || skillID < 1
+                || startLocalDate == null) {
+            String title = "Invalid input";
+            String message = "Please ensure all inputs are filled.";
+            (new AlertBox()).display(title, message);
+            return;
+        }
+        
+        //  TODO:  Acquire start date data and use it as part of input requirements
+        Date startDate = Date.valueOf(startLocalDate);
+        
+        PersonDAO personDao = new PersonDAO();
+        
+        //  DEBUG:
+        System.out.printf("\nworkcenterID = %s", workcenterID);
+        System.out.printf("\nshiftID = %s", shiftID);
+        System.out.printf("\nrankID = %s", rankID);
+        System.out.printf("\nStart Date = %s\n", startDate);
+        
+        if (personDao.addPerson(firstName, lastName, rankID, workcenterID,
+                                shiftID, skillID, startDate)) {
+            firstNameField.setText("");
+            lastNameField.setText("");
+            shiftBox.getSelectionModel().select(null);
+            rankBox.getSelectionModel().select(null);
+            skillBox.getSelectionModel().select(null);
+            startDateBox.setValue(null);
+            
+            //  TODO: Make this line update only the shift affected
+            Shift shiftAffected;
+            switch (shiftID) {
+                case 1:
+                    updateTable(Shift.MIDS);
+                    break;
+                    
+                case 2:
+                    updateTable(Shift.DAYS);
+                    break;
+                    
+                case 3:
+                    updateTable(Shift.SWINGS);
+                    break;
+            }  //  Update table for affected shift
+            
+        }  //  Adding new person was successful
+        
+    } //  end method addPerson()
+    
+    /**
+     * <p>This method first checks if any data has been entered by the user,
+     * which may be lost if it in fact closes.</p>
+     * 
+     * <p>If there is any unsaved data, a <code>ConfirmBox</code> instance is
+     * created to verify the user's request.</p>
+     */
     private static void closeWindow() {
         //  TODO:  Removed workcenter from the data check.  Verify this is desired.
         
@@ -100,11 +185,11 @@ public class AddPersonStage {
         }
         
         window.close();
-    }
+    }  //  end method closeWindow()
     
-    // ============================  Misc  ===========================
-    private enum Shift { MIDS, DAYS, SWINGS};
-    
+    /**
+     * <p>Displays the 'Add Person' stage (window)</p>
+     */
     public static void display () {
         window = new Stage();
         window.setTitle("Add Person");
@@ -194,7 +279,6 @@ public class AddPersonStage {
         //           =================  Add Button  =================
         Button addButton = new Button("Add");
         addButton.setOnAction(e -> addPerson() );
-//        addButton.setAlignment(Pos.CENTER);
         HBox buttonPane = new HBox(10);
         GridPane.setConstraints(buttonPane, 0, 4, 4, 1);
         
@@ -202,7 +286,6 @@ public class AddPersonStage {
         //           =================  Add Button  =================
         Button cancelButton = new Button("Cancel");
         cancelButton.setOnAction(e -> closeWindow() );
-//        cancelButton.setAlignment(Pos.CENTER);
         GridPane.setConstraints(buttonPane, 0, 4, 4, 1);
         
         buttonPane.getChildren().addAll(addButton, cancelButton);
@@ -241,72 +324,21 @@ public class AddPersonStage {
     }
     
     /**
-     * 
+     * <p>Calls <code>updateTable()</code> on all three <code>Shift</code>
+     * members.</p>
      */
-    private static void addPerson() {
-        
-        // =======================  Gather  Inputs  ======================
-        String firstName = firstNameField.getText();
-        String lastName = lastNameField.getText();
-        Integer workcenterID = workcenterBox.getSelectionModel().getSelectedIndex() + 1;
-        Integer shiftID = shiftBox.getSelectionModel().getSelectedIndex() + 1;
-        Integer rankID = rankBox.getSelectionModel().getSelectedIndex() + 1;
-        Integer skillID = skillBox.getSelectionModel().getSelectedIndex() + 1;
-        LocalDate startLocalDate = startDateBox.getValue();
-        
-        // =======================  Verify  Inputs  ======================
-        if        (firstName.equals("") || lastName.equals("")
-                || workcenterID < 1     || shiftID < 1
-                || rankID < 1           || skillID < 1
-                || startLocalDate == null) {
-            String title = "Invalid input";
-            String message = "Please ensure all inputs are filled.";
-            (new AlertBox()).display(title, message);
-            return;
-        }
-        
-        //  TODO:  Acquire start date data and use it as part of input requirements
-        Date startDate = Date.valueOf(startLocalDate);
-        
-        PersonDAO personDao = new PersonDAO();
-        
-        //  DEBUG:
-        System.out.printf("\nworkcenterID = %s", workcenterID);
-        System.out.printf("\nshiftID = %s", shiftID);
-        System.out.printf("\nrankID = %s", rankID);
-        System.out.printf("\nStart Date = %s\n", startDate);
-        
-        if (personDao.addPerson(firstName, lastName, rankID, workcenterID,
-                                shiftID, skillID, startDate)) {
-            firstNameField.setText("");
-            lastNameField.setText("");
-            
-            //  TODO: Make this line update only the shift affected
-            Shift shiftAffected;
-            switch (shiftID) {
-                case 1:
-                    updateTable(Shift.MIDS);
-                    break;
-                    
-                case 2:
-                    updateTable(Shift.DAYS);
-                    break;
-                    
-                case 3:
-                    updateTable(Shift.SWINGS);
-                    break;
-            }  //  Update table for affected shift
-            
-        }  //  Adding new person was successful
-        
-    } //  end method addPerson()
-    
     static private void updateAllTables () {
         updateTable(Shift.MIDS);
         updateTable(Shift.DAYS);
         updateTable(Shift.SWINGS);
     }
     
+    /**
+     * <p>Builds a table model according to the given <code>Shift</code>
+     * parameter and assigns it to the appropriate table.</p>
+     * 
+     * @param shift     Indicates which shift's table that should be updated
+     */
     static private void updateTable(Shift shift) {
         
         //  1. Build model/data

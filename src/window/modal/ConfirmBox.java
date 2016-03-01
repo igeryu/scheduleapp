@@ -5,6 +5,8 @@
  * 2016-02-25 : Created file
  * 
  * 2016-02-29 : Corrected formatting/layout for better presentation
+ * 
+ * 2016-03-01 : Added Javadoc to display()
  */
 
 package window.modal;
@@ -27,7 +29,16 @@ public class ConfirmBox {
     
     static boolean answer;
     
+    /**
+     * <p>Displays a pop-up window to ask the user to confirm a request.</p>
+     * 
+     * @param title
+     * @param message
+     * @return 
+     */
     public static boolean display (String title, String message) {
+        
+        // ==========================  Setup  ============================
         Stage window = new Stage();
         window.setTitle(title);
         Pane layout = new VBox(20);

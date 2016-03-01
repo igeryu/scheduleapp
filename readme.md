@@ -11,6 +11,45 @@ Functionality will be added to allow for the following features (not all inclusi
 
 ## Change Log
 
+### 2016-03-01
+
+[**DBConnectionPool.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/util/DBConnectionPool.java)
+
+- Added two final Strings to represent the connection URL from a localhost and remote context
+- Changed the catch clause of getPoolConnection() to display the exception's message
+
+[**AddPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/AddPersonStage.java)
+
+- Added Javadoc for: addPerson(), closeWindow(), display(), updateAllTables(), updateTables()
+- Updated addPerson() so that the ChoiceBoxes are cleared out after a successful add
+- Reordered method declarations so that they are in alphabetic order
+
+[**EditPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/EditPersonStage.java)
+
+- Extracted action handler code from deleteButton to a deletePerson() method  (Also added extra line break to confirmation message)
+- Refactoring: Removed unused imports, removed unuse switch-statement in setupButton()
+- Added Javadoc for: both confirmChangeItem() methods, deletePerson(), display(), saveChanges(), setupButton()
+- Adjusted popup window title for both confirmChangeItem() methods
+- Added Person parameter to display() method
+- Reordered method declarations so that they are in alphabetic order
+
+[**AlertBox.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/modal/AlertBox.java)
+
+- Removed unused imports
+- Added Javadoc for display()
+
+[**AnswerBox.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/modal/AnswerBox.java)
+
+- Removed unused imports
+- Changed display(title, message, defaultAnswer) to use the defaultAnswer as the answerField.promptText rather than the initial value
+- Added Javadoc for all three display() methods and init()
+- Changed layout, scene, and window fields from protected to private
+
+[**ConfirmBox.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/modal/ConfirmBox.java)
+
+- Corrected formatting/layout for better presentation
+- Added Javadoc to display()
+
 ### 2016-02-29
 
 [**Person.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/Person.java)

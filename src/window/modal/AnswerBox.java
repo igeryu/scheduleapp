@@ -3,14 +3,16 @@
 /**
  * Changelog:
  * 2016-02-25 : Created class, added display(String, String, String) and display(String, String)
+ * 
+ * 2016-02-29 : Removed unused imports
+ * 2016-02-29 : Changed display(title, message, defaultAnswer) to use the defaultAnswer as the answerField.promptText rather than the initial value
+ * 2016-02-29 : Added Javadoc for all three display() methods and init()
+ * 2016-02-29 : Changed layout, scene, and window fields from protected to private
  */
 
 package window.modal;
 
 
-import java.lang.Math;
-import java.util.ArrayList;
-import java.util.HashMap;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -20,11 +22,8 @@ import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -34,10 +33,10 @@ import javafx.stage.Stage;
  * @author alanjohnson
  */
 public class AnswerBox {
-    
-    protected Stage window;
-    protected Scene scene;
-    protected VBox layout;
+    // ===========================  Fields  ==========================
+    private Stage window;
+    private Scene scene;
+    private VBox layout;
     private Label messageLabel;
     private TextField answerField;
     private ToggleGroup toggleGroup;
@@ -45,6 +44,16 @@ public class AnswerBox {
     
     public enum Orientation { LANDSCAPE, PORTRAIT };
     
+    // ==========================  Methods  ==========================
+    /**
+     * <p>Displays a pop-up window to ask the user a question.</p>
+     * 
+     * @param title             the title of the pop-up window
+     * @param message           the message (question) to ask the user
+     * @param defaultAnswer     the default answer to provide to the user
+     * 
+     * @return                  the user's answer to the question
+     */
     public String display (String title, String message, String defaultAnswer) {
         init(title, message);
         double width = 250;
@@ -55,9 +64,8 @@ public class AnswerBox {
         layout.setPadding(new Insets(0, 10, 10, 10));
         
         // ============================  Body  ===========================
-        answerField = new TextField(defaultAnswer);
-//        answerField.setMaxWidth(100);
-//        answerField.setM
+        answerField = new TextField();
+        answerField.promptTextProperty().setValue(defaultAnswer);
         String answer = null;
         
         layout.getChildren().addAll(answerField);
@@ -102,25 +110,9 @@ public class AnswerBox {
         return answerField.getText();
     }
 
-    private void init(String title, String message) {
-        window = new Stage();
-        window.setTitle(title);
-        
-        layout = new VBox(20);
-        layout.setPadding(new Insets(0, 10, 10, 10));
-        scene = new Scene(layout, 200, 100);
-        
-        // ============================  Body  ===========================
-        messageLabel = new Label(message);
-        messageLabel.setWrapText(true);
-        layout.getChildren().addAll(messageLabel);
-        
-    }
-    
-    
-    
     /**
-     * <p>Displays a question with list of options (radio boxes).
+     * <p>Displays a pop-up window to ask the user a question with list of
+     * options (radio boxes).</p>
      * 
      * @param title
      * @param message
@@ -139,7 +131,6 @@ public class AnswerBox {
         for (String item : answers) {
             RadioButton newButton = new RadioButton(item);
             newButton.setToggleGroup(toggleGroup);
-//            toggleGroup.getToggles().add(newButton);
             answersBox.getChildren().add(newButton);
             
             rows++;
@@ -156,7 +147,7 @@ public class AnswerBox {
         
         window.setMinHeight(height);
         window.setMinWidth(width);
-//        window.setResizable(false);
+        window.setResizable(false);
         
         //  DEBUG:
         System.out.printf("\n[AnswerBox.display()]\nheight: %s\nwidth: %s\n", height, width);
@@ -165,10 +156,6 @@ public class AnswerBox {
         //  then increases the window's height by the amount messageLabel itself
         //  increased:
         messageLabel.setMinHeight(Control.USE_PREF_SIZE);
-        
-        //  DEBUG:
-//        System.out.printf("\n[AnswerBox.display()]\nheight difference: %s\n", messageHeight);
-        
         
         window.setOnCloseRequest(e -> {
             answer = null;
@@ -200,8 +187,37 @@ public class AnswerBox {
         return answer;
     }
     
+    /**
+     * <p>Displays a pop-up window to ask the user a question, but with no
+     * default answer.</p>
+     * 
+     * @param title
+     * @param message
+     * @return 
+     */
     public String display(String title, String message) {
         return display(title, message, "");
+    }
+    
+    /**
+     * <p>Initializes the answer box pop-up using the given parameters.</p>
+     * 
+     * @param title
+     * @param message 
+     */
+    private void init(String title, String message) {
+        window = new Stage();
+        window.setTitle(title);
+        
+        layout = new VBox(20);
+        layout.setPadding(new Insets(0, 10, 10, 10));
+        scene = new Scene(layout, 200, 100);
+        
+        // ============================  Body  ===========================
+        messageLabel = new Label(message);
+        messageLabel.setWrapText(true);
+        layout.getChildren().addAll(messageLabel);
+        
     }
     
 }

@@ -37,7 +37,7 @@ public class TestDriver extends Application {
         layout.getChildren().add(addPersonButton);
         
         Button editPersonButton = new Button("Test 'Edit Person'");
-        editPersonButton.setOnAction(e -> (new EditPersonStage()).display());
+        editPersonButton.setOnAction(e -> (new EditPersonStage()).display(null));
         layout.getChildren().add(editPersonButton);
         
         stage.show();
