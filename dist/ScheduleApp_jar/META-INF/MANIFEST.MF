@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.9.4
-Created-By: 1.8.0_20-b26 (Oracle Corporation)
-Class-Path: lib/derby.jar lib/derbyclient.jar lib/derbynet.jar lib/swi
- ngx-all-1.6.4.jar lib/rs2xml.jar lib/jfxrt.jar lib/jdatepicker-1.3.4.
- jar
-X-COMMENT: Main-Class will be added automatically by build
-Main-Class: TestDriver
-

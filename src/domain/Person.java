@@ -54,8 +54,8 @@ public class Person implements java.io.Serializable {
         firstName = fn;
         lastName = ln;
         rank_id = rID;
-        setWorkcenter_ID(wcID);
-        setShift_ID(shID);
+        setWorkcenterID(wcID);
+        setShiftID(shID);
         skill_id = skID;
     }
     
@@ -156,7 +156,7 @@ public class Person implements java.io.Serializable {
         workcenter_id = mapReversed.get(workcenter);
     }
     
-    private void setWorkcenter_ID (Integer workcenter_id) {
+    private void setWorkcenterID (Integer workcenter_id) {
         this.workcenter_id = workcenter_id;
         
         Map<Integer, String> map = (new WorkcenterDAO()).getMap();
@@ -185,7 +185,7 @@ public class Person implements java.io.Serializable {
         skill_id = mapReversed.get(skill);
     }
     
-    private void setShift_ID (Integer shift_id) {
+    private void setShiftID (Integer shift_id) {
         this.shift_id = shift_id;
         
         Map<Integer, String> map = (new ShiftDAO()).getMap();

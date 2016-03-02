@@ -8,6 +8,8 @@
  * 2016-02-29 : Changed display(title, message, defaultAnswer) to use the defaultAnswer as the answerField.promptText rather than the initial value
  * 2016-02-29 : Added Javadoc for all three display() methods and init()
  * 2016-02-29 : Changed layout, scene, and window fields from protected to private
+ * 
+ * 2016-03-01 : Updated display(title, message, answers, orientation) so that clicking 'OK' with no RadioButton selected does not throw an exception
  */
 
 package window.modal;
@@ -165,7 +167,11 @@ public class AnswerBox {
         // ==========================  Buttons  ==========================
         Button confirmButton = new Button("OK");
         confirmButton.setOnAction(e -> {
-            answer = ((RadioButton)toggleGroup.getSelectedToggle()).getText();
+            RadioButton selectedButton = (RadioButton) toggleGroup.getSelectedToggle();
+            if (selectedButton == null)
+                answer = null;
+            else
+                answer = ((RadioButton)toggleGroup.getSelectedToggle()).getText();
             window.close();
                 });
         

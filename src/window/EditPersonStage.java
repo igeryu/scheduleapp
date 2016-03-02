@@ -17,6 +17,10 @@
  * 2016-02-29 : Adjusted popup window title for both confirmChangeItem() methods
  * 2016-02-29 : Added Person parameter to display() method
  * 2016-02-29 : Reordered method declarations so that they are in alphabetic order
+ * 
+ * 2016-03-01 : Removed code block from addButton's setOnAction() lambda expression
+ * 2016-03-01 : Added cancelButton
+ * 2016-03-01 : Changed saveCancelButton to an HBox
  */
 
 package window;
@@ -41,6 +45,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -298,18 +303,22 @@ public class EditPersonStage {
         GridPane.setConstraints(skillButton, 2, 3);
         
         //           ==================  3rd  Row  ==================
+        HBox saveCancelPane = new HBox(20);
+        saveCancelPane.setAlignment(Pos.CENTER);
         
         //                ===========  Save  Button  ===========
         Button saveButton = new Button("Save");
         //  TODO:  Fix functionality for saveButton
-        saveButton.setOnAction(e -> {
-            saveChanges();
-        });
-        saveButton.setAlignment(Pos.CENTER);
-        StackPane saveButtonPane = new StackPane();
-        GridPane.setConstraints(saveButtonPane, 0, 4, 4, 1);
-        saveButtonPane.setPadding(new Insets(20, 0, 0, 0));
-        saveButtonPane.getChildren().add(saveButton);
+        saveButton.setOnAction(e -> saveChanges() );
+        GridPane.setConstraints(saveCancelPane, 0, 4, 4, 1);
+        saveCancelPane.setPadding(new Insets(20, 0, 0, 0));
+        saveCancelPane.getChildren().add(saveButton);
+        
+        //                ===========  Cancel Button  ==========
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setOnAction(e -> window.close());
+        GridPane.setConstraints(saveCancelPane, 0, 4, 4, 1);
+        saveCancelPane.getChildren().add(cancelButton);
         
         //                ==========  Delete  Button  ==========
         Button deleteButton = new Button("Delete");
@@ -323,7 +332,7 @@ public class EditPersonStage {
         inputPane.getChildren().addAll(workcenterButton, shiftButton,
                                        rankButton, startDateBox,
                                        firstNameButton, lastNameButton,
-                                       skillButton, saveButtonPane,
+                                       skillButton, saveCancelPane,
                                        deleteButtonPane);
         
         // =============================  Finish  =============================
@@ -361,7 +370,7 @@ public class EditPersonStage {
         (new PersonDAO()).updatePerson(person);
         if (shiftChanged) {
             (new ShiftDateDAO()).addStartDate(person, Date.valueOf(startLocalDate));
-            shiftChanged = false;
+//            shiftChanged = false;  //  This is only needed if the window remains open
         }
         //  TODO:  Should the Edit Person window stay open after a successful save?
         window.close();
@@ -404,6 +413,10 @@ public class EditPersonStage {
             
             if (newValue != null && !newValue.equals("")) {
                 button.setText(newValue);
+            } else {
+                String title = "Error";
+                String message = String.format("No %s was selected", item);
+                (new AlertBox()).display(title, message);
             }
                 });
     }  //  end method setupButton()

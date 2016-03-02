@@ -11,6 +11,22 @@ Functionality will be added to allow for the following features (not all inclusi
 
 ## Change Log
 
+### 2016-03-02
+
+[**AddPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/AddPersonStage.java)
+
+- Added a AlertBox message to the latter part of addPerson()
+
+[**EditPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/EditPersonStage.java)
+
+- Removed code block from addButton's setOnAction() lambda expression
+- Added cancelButton
+- Changed saveCancelButton to an HBox
+
+[**AnswerBox.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/modal/AnswerBox.java)
+
+- Updated display(title, message, answers, orientation) so that clicking 'OK' with no RadioButton selected does not throw an exception
+
 ### 2016-03-01
 
 [**DBConnectionPool.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/util/DBConnectionPool.java)

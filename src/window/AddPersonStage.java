@@ -20,6 +20,8 @@
  * 2016-02-29 : Added Javadoc for: addPerson(), closeWindow(), display(), updateAllTables(), updateTables()
  * 2016-02-29 : Updated addPerson() so that the ChoiceBoxes are cleared out after a successful add
  * 2016-02-29 : Reordered method declarations so that they are in alphabetic order
+ * 
+ * 2016-03-01 : Added a AlertBox message to the latter part of addPerson()
  */
 
 package window;
@@ -147,6 +149,10 @@ public class AddPersonStage {
                     break;
             }  //  Update table for affected shift
             
+            String title = "Success";
+            String message = "Successfully added new person";
+            (new AlertBox()).display(title, message);
+            
         }  //  Adding new person was successful
         
     } //  end method addPerson()
@@ -203,7 +209,7 @@ public class AddPersonStage {
         
         // ===========================  Title Label  ==========================
         Pane titlePane = new StackPane();
-        titlePane.getChildren().add(new Label("Add Person"));
+//        titlePane.getChildren().add(new Label("Add Person"));
         rootLayout.getChildren().add(titlePane);
         
         // ===========================  Input Area  ===========================
