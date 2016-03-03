@@ -382,17 +382,17 @@ public class AddPersonStage {
         switch (shift) {
             case MIDS:
                 table = midsTable;
-                data = personDao.getPeopleByShift(1, workcenterID);
+                data = personDao.getPeopleListByShift(1, workcenterID);
                 break;
                 
             case DAYS:
                 table = daysTable;
-                data = personDao.getPeopleByShift(2, workcenterID);
+                data = personDao.getPeopleListByShift(2, workcenterID);
                 break;
                 
             case SWINGS:
                 table = swingsTable;
-                data = personDao.getPeopleByShift(3, workcenterID);
+                data = personDao.getPeopleListByShift(3, workcenterID);
                 break;
         }
         

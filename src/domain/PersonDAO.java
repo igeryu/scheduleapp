@@ -8,6 +8,10 @@
  * 
  * 2016-02-29 : Updated addPerson() to accept shift date and properly update the SHIFT_DATE table
  * 2016-02-29 : Updated update() method to make changes to all PERSON attributes
+ * 
+ * 2016-03-02 : Changed getPeopleByShift() to getPeopleListByShift()
+ * 2016-03-02 : Changed getPeople() to getPeopleTableByShift()
+ * 2016-03-02 : Added getPeopleTableByShift(workcenter, shift, date).  The existing getPeopleTableByShift() now calls this new overload using today's date.
  */
 
 /**
@@ -21,7 +25,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Map;
 import javafx.collections.FXCollections;
@@ -37,11 +41,6 @@ public class PersonDAO {
     //  TODO:  Build an arraylist of all people at initialization, then make methods to return inviduals that match criteria (shift, workcenter, etc)
     //  TODO:  Refactor other classes that use PersonDAO, to only use one instance, so that the population of the arraylist mentioned above happens only when necessary
     
-
-//    public int countPeople() {
-//        return getPeopleByShift().size();
-//    }
-
     public void delete(Person person) {
         //  DEBUG:
         System.out.println("\n[PersonDAO_New.delete()] Entering method...");
@@ -81,6 +80,7 @@ public class PersonDAO {
     }
     private static final String DELETE_STMT = "DELETE FROM alan.person "
             + "WHERE id = ?";
+    
     
     public Person getPerson(int personID) {
         Person person = null;
@@ -129,6 +129,7 @@ public class PersonDAO {
     private static final String GET_STMT = "SELECT * FROM alan.person "
             + "WHERE id = ?";
 
+    
     public ArrayList<Person> findPeople(String search) {
 
         PreparedStatement request = null;
@@ -188,7 +189,7 @@ public class PersonDAO {
     private static final String GET_BY_SHIFT_STMT = "SELECT * FROM person "
             + "WHERE    shift_id = ? "
             + "AND workcenter_id = ?";
-    public ObservableList<Person> getPeopleByShift(Integer shift,
+    public ObservableList<Person> getPeopleListByShift(Integer shift,
                                                    Integer workcenter) {
 
         PreparedStatement request = null;
@@ -261,19 +262,11 @@ public class PersonDAO {
 //        return null;
     }
 
+    public TableModel getPeopleTableByShift(Integer workcenter, Integer shift) {
+        return getPeopleTableByShift(workcenter, shift, LocalDate.now());
+    }
     
-    
-    private static final String GET_STATEMENT = "SELECT rank.name AS \"Rank\", "
-            + "last_name AS \"Last Name\", first_name AS \"First Name\", "
-            + "shift.name AS \"Shift\", skill.level AS \"Skill Lv\" "
-            + "FROM alan.person, rank, workcenter, shift, skill "
-            + "WHERE workcenter.id = ? "
-            + "AND   person.workcenter_id = workcenter.id "
-            + "AND   shift.id = ? "
-            + "AND   person.shift_id = shift.id "
-            + "AND   person.rank_id = rank.id "
-            + "AND   person.skill_id = skill.id";
-    public TableModel getPeople(Integer workcenter, Integer shift) {
+    public TableModel getPeopleTableByShift(Integer workcenter, Integer shift, LocalDate date) {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -317,6 +310,16 @@ public class PersonDAO {
 
         return null;
     }
+    private static final String GET_STATEMENT = "SELECT rank.name AS \"Rank\", "
+            + "last_name AS \"Last Name\", first_name AS \"First Name\", "
+            + "shift.name AS \"Shift\", skill.level AS \"Skill Lv\" "
+            + "FROM alan.person, rank, workcenter, shift, skill "
+            + "WHERE workcenter.id = ? "
+            + "AND   person.workcenter_id = workcenter.id "
+            + "AND   shift.id = ? "
+            + "AND   person.shift_id = shift.id "
+            + "AND   person.rank_id = rank.id "
+            + "AND   person.skill_id = skill.id";
     
     private static final String INSERT_STMT = "INSERT INTO alan.person "
             + "VALUES (?, ?, ?, ?, ?, ?, ?)";
