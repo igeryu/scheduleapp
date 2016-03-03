@@ -11,7 +11,7 @@
  * 
  * 2016-03-02 : Changed getPeopleByShift() to getPeopleListByShift()
  * 2016-03-02 : Changed getPeople() to getPeopleTableByShift()
- * 2016-03-02 : Added getPeopleTableByShift(workcenter, shift, date).  The existing getPeopleTableByShift() now calls this new overload using today's date.
+ * 2016-03-02 : Added getPeopleListByShift(workcenter, shift, date).  The existing getPeopleListByShift() now calls this new overload using today's date.
  */
 
 /**
@@ -186,15 +186,19 @@ public class PersonDAO {
 
     
     
-    private static final String GET_BY_SHIFT_STMT = "SELECT * FROM person "
-            + "WHERE    shift_id = ? "
-            + "AND workcenter_id = ?";
+    
     public ObservableList<Person> getPeopleListByShift(Integer shift,
                                                    Integer workcenter) {
+        return getPeopleListByShift(shift, workcenter, LocalDate.now());
+    }
+    
+    public ObservableList<Person> getPeopleListByShift(Integer shift,
+                                                   Integer workcenter,
+                                                   LocalDate date) {
 
         PreparedStatement request = null;
         Connection conn = null;
-
+        if (date == null) date = LocalDate.now();
         
         ObservableList<Person> personData = null;
         ArrayList<Person> personList = new ArrayList<>();
@@ -204,15 +208,18 @@ public class PersonDAO {
         try {
             conn = DBConnectionPool.getPoolConnection();
             request = conn.prepareStatement(GET_BY_SHIFT_STMT);
-            request.setInt(1, shift);
-            request.setInt(2, workcenter);
+            request.setInt(1, workcenter);
 
-            
             ResultSet rset = request.executeQuery();
-
+            ShiftDateDAO shiftDateDao = new ShiftDateDAO();
             
             while (rset.next()) {
                 int id = rset.getInt("id");
+                int shift_id = shiftDateDao.getCurrentShift(id, date);
+                
+                if (shift_id != shift)
+                    continue;
+                
                 String firstName = rset.getString("first_name");
                 String lastName = rset.getString("last_name");
                 String rank = rankMap.get(rset.getInt("rank_id"));
@@ -261,12 +268,16 @@ public class PersonDAO {
 
 //        return null;
     }
-
-    public TableModel getPeopleTableByShift(Integer workcenter, Integer shift) {
-        return getPeopleTableByShift(workcenter, shift, LocalDate.now());
-    }
+    private static final String GET_BY_SHIFT_STMT = "SELECT * FROM person "
+            + "WHERE workcenter_id = ?";
     
-    public TableModel getPeopleTableByShift(Integer workcenter, Integer shift, LocalDate date) {
+   /**
+    * Depreciated
+    * @param workcenter
+    * @param shift
+    * @return 
+    */
+    public TableModel getPeopleTableByShift(Integer workcenter, Integer shift) {
         
         PreparedStatement request = null;
         Connection conn = null;

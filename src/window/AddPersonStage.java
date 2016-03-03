@@ -22,6 +22,10 @@
  * 2016-02-29 : Reordered method declarations so that they are in alphabetic order
  * 
  * 2016-03-01 : Added a AlertBox message to the latter part of addPerson()
+ * 
+ * 2016-03-02 : Created 'dateChoice' field to hold the current date selected by startDateBox
+ * 2016-03-02 : Commented out the nullification of startDateBox's date after a person is added
+ * 2016-03-02 : Made startDateBox default to today's date when the window is opened
  */
 
 package window;
@@ -75,6 +79,7 @@ public class AddPersonStage {
     private static ChoiceBox rankBox;
     private static ChoiceBox shiftBox;
     private static ChoiceBox workcenterBox;
+    private static LocalDate dateChoice;
     
     // ============================  Misc  ===========================
     private static Stage window;
@@ -131,10 +136,9 @@ public class AddPersonStage {
             shiftBox.getSelectionModel().select(null);
             rankBox.getSelectionModel().select(null);
             skillBox.getSelectionModel().select(null);
-            startDateBox.setValue(null);
+//            startDateBox.setValue(null);  //  should not null out, now that tables populate based on selected date
             
             //  TODO: Make this line update only the shift affected
-            Shift shiftAffected;
             switch (shiftID) {
                 case 1:
                     updateTable(Shift.MIDS);
@@ -267,7 +271,11 @@ public class AddPersonStage {
         rankBox = new ChoiceBox((new RankDAO()).getList());
         GridPane.setConstraints(rankBox, 2, 1);
         
-        startDateBox = new DatePicker();
+        startDateBox = new DatePicker(LocalDate.now());
+        startDateBox.valueProperty().addListener((obsVal, oldVal, newVal) -> {
+            dateChoice = newVal; System.out.printf("\nDate: %s\n", dateChoice);
+            updateAllTables();
+        });
         GridPane.setConstraints(startDateBox, 3, 1);
         
         //           ==================  2nd  Row  ==================
@@ -289,7 +297,7 @@ public class AddPersonStage {
         GridPane.setConstraints(buttonPane, 0, 4, 4, 1);
         
         
-        //           =================  Add Button  =================
+        //           ===============  Cancel  Button  ===============
         Button cancelButton = new Button("Cancel");
         cancelButton.setOnAction(e -> closeWindow() );
         GridPane.setConstraints(buttonPane, 0, 4, 4, 1);
@@ -328,6 +336,7 @@ public class AddPersonStage {
         window.showAndWait();
     
     }
+    
     
     /**
      * <p>Calls <code>updateTable()</code> on all three <code>Shift</code>
@@ -382,17 +391,17 @@ public class AddPersonStage {
         switch (shift) {
             case MIDS:
                 table = midsTable;
-                data = personDao.getPeopleListByShift(1, workcenterID);
+                data = personDao.getPeopleListByShift(1, workcenterID, dateChoice);
                 break;
                 
             case DAYS:
                 table = daysTable;
-                data = personDao.getPeopleListByShift(2, workcenterID);
+                data = personDao.getPeopleListByShift(2, workcenterID, dateChoice);
                 break;
                 
             case SWINGS:
                 table = swingsTable;
-                data = personDao.getPeopleListByShift(3, workcenterID);
+                data = personDao.getPeopleListByShift(3, workcenterID, dateChoice);
                 break;
         }
         
