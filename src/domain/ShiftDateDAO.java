@@ -3,6 +3,9 @@
 /**
  * Changelog:
  * 2016-02-28 : Corrected insert() so that it works
+ * 
+ * 2016-03-02 : Added getCurrentShift(person_id) and changed getCurrentShift(person) to call the former method using person.getObjectID()
+ * 2016-03-02 : Added getCurrentShift(person_id, date) and changed getCurrentShift(person_id) to call the former method using LocalDate.now()
  */
 
 /**
@@ -77,9 +80,14 @@ public class ShiftDateDAO {
     
     
     
-    private static final String GET_CURRENT_SHIFT_STMT = "SELECT * FROM shift_date "
-            + "WHERE person_id = ?";
-    public Integer getCurrentShift(Person person) {
+    
+    public Integer getCurrentShift(Person person) { return getCurrentShift(person.getObjectID()); }
+    //  end method getCurrentShift(Person)
+    
+    public Integer getCurrentShift(Integer person_id) { return getCurrentShift(person_id, LocalDate.now()); }
+    //  end method getCurrentShift(person_id)
+    
+    public Integer getCurrentShift(Integer person_id, LocalDate date) {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -87,13 +95,13 @@ public class ShiftDateDAO {
         try {
             conn = DBConnectionPool.getPoolConnection();
             request = conn.prepareStatement(GET_CURRENT_SHIFT_STMT);
-            request.setInt(1, person.getObjectID());
+            request.setInt(1, person_id);
 
             ResultSet rset = request.executeQuery();
 
             
             //   Find the shift change date that is:
-            //       A) Today earlier
+            //       A) Earlier than 'date'
             //       B) The most recent
             //   The above two conditions will yield the current shift.
             Date shiftDate = Date.valueOf("1900-01-01");
@@ -103,10 +111,10 @@ public class ShiftDateDAO {
                 
                 LocalDate tempLocalDate = tempDate.toLocalDate();
                 LocalDate shiftLocalDate = shiftDate.toLocalDate();
-                LocalDate tomorrowLocalDate = LocalDate.now().plus(1, ChronoUnit.DAYS);
+                LocalDate nextDayLocalDate = date.plus(1, ChronoUnit.DAYS);
                 
                 if (tempLocalDate.isAfter(shiftLocalDate)
-                        && tempLocalDate.isBefore(tomorrowLocalDate)) {
+                        && tempLocalDate.isBefore(nextDayLocalDate)) {
                     shiftDate = tempDate;
                     shift = rset.getInt("shift_id");
                 }  // check if next date is more current
@@ -139,9 +147,8 @@ public class ShiftDateDAO {
 
         return -1;
     }
-    
-
-    
+    private static final String GET_CURRENT_SHIFT_STMT = "SELECT * FROM shift_date "
+            + "WHERE person_id = ?";
     
     private static final String INSERT_STMT = "INSERT INTO shift_date "
             + "VALUES (?, ?, ?, ?)";

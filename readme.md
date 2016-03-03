@@ -13,9 +13,23 @@ Functionality will be added to allow for the following features (not all inclusi
 
 ### 2016-03-02
 
+[**PersonDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java)
+
+- Changed getPeopleByShift() to getPeopleListByShift()
+- Changed getPeople() to getPeopleTableByShift()
+- Added getPeopleListByShift(workcenter, shift, date).  The existing getPeopleListByShift() now calls this new overload using today's date.
+
+[**ShiftDateDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/ShiftDateDAO.java)
+
+- Added getCurrentShift(person_id) and changed getCurrentShift(person) to call the former method using person.getObjectID()
+- Added getCurrentShift(person_id, date) and changed getCurrentShift(person_id) to call the former method using LocalDate.now()
+
 [**AddPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/AddPersonStage.java)
 
 - Added a AlertBox message to the latter part of addPerson()
+- Created 'dateChoice' field to hold the current date selected by startDateBox
+- Commented out the nullification of startDateBox's date after a person is added
+- Made startDateBox default to today's date when the window is opened
 
 [**EditPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/EditPersonStage.java)
 
