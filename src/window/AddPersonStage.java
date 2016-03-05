@@ -21,7 +21,7 @@
  * 2016-02-29 : Updated addPerson() so that the ChoiceBoxes are cleared out after a successful add
  * 2016-02-29 : Reordered method declarations so that they are in alphabetic order
  * 
- * 2016-03-01 : Added a AlertBox message to the latter part of addPerson()
+ * 2016-03-01 : Added an AlertBox message to the latter part of addPerson()
  * 
  * 2016-03-02 : Created 'dateChoice' field to hold the current date selected by startDateBox
  * 2016-03-02 : Commented out the nullification of startDateBox's date after a person is added

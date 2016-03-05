@@ -12,9 +12,9 @@
  * 2016-02-28 : Saving a change to workcenter WITH a start date will successfully change the workcenter and add a new start date
  * 
  * 2016-02-29 : Extracted action handler code from deleteButton to a deletePerson() method  (Also added extra line break to confirmation message)
- * 2016-02-29 : Refactoring: Removed unused imports, removed unuse switch-statement in setupButton()
+ * 2016-02-29 : Refactoring: Removed unused imports, removed unused switch-statement in setupButton()
  * 2016-02-29 : Added Javadoc for: both confirmChangeItem() methods, deletePerson(), display(), saveChanges(), setupButton()
- * 2016-02-29 : Adjusted popup window title for both confirmChangeItem() methods
+ * 2016-02-29 : Adjusted pop-up window title for both confirmChangeItem() methods
  * 2016-02-29 : Added Person parameter to display() method
  * 2016-02-29 : Reordered method declarations so that they are in alphabetic order
  * 
