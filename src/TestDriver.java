@@ -7,6 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import util.DBBuild;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -27,6 +28,10 @@ public class TestDriver extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        //  DEBUG:
+        System.out.println("\n[TestDriver.start()] Testing database...");
+        
+        DBBuild.testDatabase();
         Stage stage = new Stage();
         Pane layout = new VBox(30);
         Scene scene = new Scene(layout, 200, 200);
