@@ -78,7 +78,7 @@ public class PersonDAO {
         }
         System.out.println("\n[PersonDAO_New.delete()] Exiting method...");
     }
-    private static final String DELETE_STMT = "DELETE FROM alan.person "
+    private static final String DELETE_STMT = "DELETE FROM person "
             + "WHERE id = ?";
     
     
@@ -126,7 +126,7 @@ public class PersonDAO {
 
         return person;
     }
-    private static final String GET_STMT = "SELECT * FROM alan.person "
+    private static final String GET_STMT = "SELECT * FROM person "
             + "WHERE id = ?";
 
     
@@ -180,7 +180,7 @@ public class PersonDAO {
 
         return personList;
     }
-    private static final String SEARCH_STMT = "SELECT * FROM alan.person "
+    private static final String SEARCH_STMT = "SELECT * FROM person "
             + "WHERE (UPPER(first_name) LIKE ?) "
             + "OR    (UPPER(last_name)  LIKE ?)";
 
@@ -324,7 +324,7 @@ public class PersonDAO {
     private static final String GET_STATEMENT = "SELECT rank.name AS \"Rank\", "
             + "last_name AS \"Last Name\", first_name AS \"First Name\", "
             + "shift.name AS \"Shift\", skill.level AS \"Skill Lv\" "
-            + "FROM alan.person, rank, workcenter, shift, skill "
+            + "FROM person, rank, workcenter, shift, skill "
             + "WHERE workcenter.id = ? "
             + "AND   person.workcenter_id = workcenter.id "
             + "AND   shift.id = ? "
@@ -332,7 +332,7 @@ public class PersonDAO {
             + "AND   person.rank_id = rank.id "
             + "AND   person.skill_id = skill.id";
     
-    private static final String INSERT_STMT = "INSERT INTO alan.person "
+    private static final String INSERT_STMT = "INSERT INTO person "
             + "VALUES (?, ?, ?, ?, ?, ?, ?)";
     
     private void insert(Person person) {

@@ -5,6 +5,9 @@
  * 
  * 2016-03-01 : Added two final Strings to represent the connection URL from a localhost and remote context
  * 2016-03-01 : Changed the catch clause of getPoolConnection() to display the exception's message
+ * 
+ * 2016-03-05 : Changed the name of the database in CONNECTION_URL and CONNECTION_URL_REMOTE
+ * 2016-03-05 : Changed the login username used in getPoolConnection()
  */
 
 /**
@@ -26,8 +29,8 @@ import javax.naming.NamingException;
 
 public class DBConnectionPool extends Object {
     
-    private static final String CONNECTION_URL = "jdbc:derby://localhost:1527/Schedule";
-    private static final String CONNECTION_URL_REMOTE = "jdbc:derby://192.168.0.198:1527/Schedule";
+    private static final String CONNECTION_URL = "jdbc:derby://localhost:1527/Lobo_AMU";
+    private static final String CONNECTION_URL_REMOTE = "jdbc:derby://192.168.0.198:1527/Lobo_AMU";
 
     private static DBConnectionPool instance;
     private static DataSource ds = null;
@@ -80,12 +83,13 @@ public class DBConnectionPool extends Object {
         String connectionURL = CONNECTION_URL;
         Connection conn;
         try {
-            conn = DriverManager.getConnection(connectionURL, "Alan", "password");
+            conn = DriverManager.getConnection(connectionURL, "Owner", "password");
             System.out.println("Connection successful!");
-            //conn.close();
             return conn;
         } catch (SQLException ex) {
-            System.out.println("\nA database error occurred. " + ex.getMessage());
+            String errorMessage = ex.getMessage();
+            System.out.println("\nA database error occurred. " + errorMessage);
+            
 //            throw ex;
         }
         
