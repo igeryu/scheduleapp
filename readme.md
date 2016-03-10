@@ -11,6 +11,38 @@ Functionality will be added to allow for the following features (not all inclusi
 
 ## Change Log
 
+### 2016-03-09
+
+[**mainStage.css**](https://github.com/igeryu/scheduleapp/blob/develop/src/css/mainStage.css)
+
+- Added file, to manage styling for `MainStage` class
+
+[**Person.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/Person.java)
+
+- Added constructor that takes `int` values for rank, workcenter and skill level (IDs)
+- Added `setRankID()` and `setSkillID()` to work in parallel with `setWorkcenterID()`
+
+[**PersonDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java)
+
+- Renamed both `getPeopleListByShift()` methods to `getPeopleObsListByShift()`
+- Added both `getPeopleArrayListByShift()` methods
+- Added `getAllPeople()`
+
+[**ShiftDateDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/ShiftDateDAO.java)
+
+- Added both `getWeek()` methods
+
+[**DBBuild.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/util/DBBuild.java)
+
+- Fixed `buildObjectIdsTable()` so that `PERSON` and `SHIFT_DATE` start with an `ID` of `1`
+
+[**MainStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/MainStage.java)
+
+- Created file
+- Added a tabbed pane with 'Schedule' and 'Manage' tabs
+- Schedule Shift View works, shows each person (rows) with their current shift today and next six days.
+- Made shift cells color-coded for easier viewing.
+
 ### 2016-03-02
 
 [**PersonDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java)

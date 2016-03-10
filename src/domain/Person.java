@@ -11,6 +11,9 @@
  * 
  * 2016-02-28 : Added setAll() method
  * 2016-02-28 : Modified setWorkcenter() to match other setters (updates workcenter as well as workcenter_id)
+ * 
+ * 2016-03-08 : Added constructor that takes int values for rank, workcenter and skill level (IDs)
+ * 2016-03-08 : Added setRankID() and setSkillID() to work in parallel with setWorkcenterID()
  */
 
 /**
@@ -43,13 +46,20 @@ public class Person implements java.io.Serializable {
         setRank(rk);
         setSkill(sk);
     }
+    
+    public Person (String fn, String ln, int rk, int wc, int sk) {
+        this(-1, fn, ln, 1, 1, 1, 1);
+        setRankID(rk);
+        setWorkcenterID(wc);
+        setSkillID(sk);
+    }
 
     //The full constructor is package-private to prevent misuse.
     public Person() {
         this(-1, "", "", 0, 0, 0, 0);
     }
 
-    Person(int oID, String fn, String ln, Integer rID, Integer wcID, Integer shID, Integer skID) {
+    Person(int oID, String fn, String ln, int rID, int wcID, int shID, int skID) {
         objectID = oID;
         firstName = fn;
         lastName = ln;
@@ -77,7 +87,7 @@ public class Person implements java.io.Serializable {
     public String getFirstName() {
         return firstName;
     }
-
+    
     public void setLastName(String n) {
         if (n != null && !n.equals("")) {
             lastName = n;
@@ -113,8 +123,8 @@ public class Person implements java.io.Serializable {
     }
 
     public String toString() {
-        return String.format("%s, %s: (R: %s) (W: %s) (S: %s)",
-                firstName, lastName,
+        return String.format("(ID: %s) %s, %s: (R: %s) (W: %s) (S: %s)",
+                objectID, firstName, lastName,
                 rank_id, workcenter_id, shift_id);
     }
 
@@ -174,6 +184,18 @@ public class Person implements java.io.Serializable {
         Map<String, Integer> mapReversed = (new RankDAO()).getMapReversed();
         rank_id = mapReversed.get(rank);
     }
+    
+    /**
+     * Should exist
+     * 
+     * @param rank the rank to set
+     */
+    public void setRankID(int rID) {
+        this.rank_id = rID;
+        
+        Map<Integer, String> map = (new RankDAO()).getMap();
+        rank = map.get(rank_id);
+    }
 
     /**
      * @param shift the shift to set
@@ -200,5 +222,12 @@ public class Person implements java.io.Serializable {
         
         Map<String, Integer> mapReversed = (new SkillDAO()).getMapReversed();
         skill_id = mapReversed.get(skill);
+    }
+    
+    public void setSkillID(int skID) {
+        this.skill_id = skID;
+        
+        Map<Integer, String> map = (new SkillDAO()).getMap();
+        skill = map.get(skill_id);
     }
 }

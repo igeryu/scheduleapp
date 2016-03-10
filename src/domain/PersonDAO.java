@@ -12,6 +12,10 @@
  * 2016-03-02 : Changed getPeopleByShift() to getPeopleListByShift()
  * 2016-03-02 : Changed getPeople() to getPeopleTableByShift()
  * 2016-03-02 : Added getPeopleListByShift(workcenter, shift, date).  The existing getPeopleListByShift() now calls this new overload using today's date.
+ * 
+ * 2016-03-07 : Renamed both getPeopleListByShift() methods to getPeopleObsListByShift()
+ * 2016-03-07 : Added both getPeopleArrayListByShift() methods
+ * 2016-03-07 : Added getAllPeople()
  */
 
 /**
@@ -184,16 +188,76 @@ public class PersonDAO {
             + "WHERE (UPPER(first_name) LIKE ?) "
             + "OR    (UPPER(last_name)  LIKE ?)";
 
-    
-    
-    
-    public ObservableList<Person> getPeopleListByShift(Integer shift,
-                                                   Integer workcenter) {
-        return getPeopleListByShift(shift, workcenter, LocalDate.now());
+    public ArrayList<Person> getAllPeople() {
+
+        PreparedStatement request = null;
+        Connection conn = null;
+        
+        ArrayList<Person> personList = new ArrayList<>();
+//        Map<Integer, String> rankMap = (new RankDAO()).getMap();
+//        Map<Integer, String> skillMap = (new SkillDAO()).getMap();
+        
+        try {
+            conn = DBConnectionPool.getPoolConnection();
+            request = conn.prepareStatement(GET_ALL_STMT);
+
+            ResultSet rset = request.executeQuery();
+            
+            while (rset.next()) {
+                int id = rset.getInt("id");
+                
+                String firstName = rset.getString("first_name");
+                String lastName = rset.getString("last_name");
+                int rank = rset.getInt("rank_id");
+                int skill = rset.getInt("skill_id");
+                int workcenter = rset.getInt("workcenter_id");
+                
+                
+                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
+                                + "rank: %s\nskill: %s", rank, skill);
+
+                //  TODO:  Fix this:
+                Person person = new Person(firstName, lastName, rank, workcenter, skill);
+                person.setObjectID(id);
+                
+                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
+                                + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
+
+                personList.add(person);
+            }
+            
+//            System.out.println("\nTest Point A");
+            
+            return personList;
+
+        } catch (SQLException se) {
+            throw new RuntimeException(
+                    "[PersonDAO_New.getPeopleByShift()] A database error occurred. " + se.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Exception: " + e.getMessage());
+        } finally {
+            if (request != null) {
+                try {
+                    request.close();
+                } catch (SQLException se) {
+                    se.printStackTrace(System.err);
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                }
+            }
+        }
+
+//        return null;
     }
+    private static final String GET_ALL_STMT = "SELECT * FROM person";
     
-    public ObservableList<Person> getPeopleListByShift(Integer shift,
-                                                   Integer workcenter,
+    public ArrayList<Person> getPeopleArrayListByShift(Integer shift,
+                                                   int workcenter,
                                                    LocalDate date) {
 
         PreparedStatement request = null;
@@ -240,9 +304,7 @@ public class PersonDAO {
             
 //            System.out.println("\nTest Point A");
             
-            personData = FXCollections.observableArrayList(personList);
-            
-            return personData;
+            return personList;
 
         } catch (SQLException se) {
             throw new RuntimeException(
@@ -267,6 +329,23 @@ public class PersonDAO {
         }
 
 //        return null;
+    }
+    
+    public ArrayList<Person> getPeopleArrayListByShift(Integer shift,
+                                                   Integer workcenter) {
+        return getPeopleArrayListByShift(shift, workcenter, LocalDate.now());
+    }
+    
+    
+    public ObservableList<Person> getPeopleObsListByShift(Integer shift,
+                                                   Integer workcenter) {
+        return getPeopleObsListByShift(shift, workcenter, LocalDate.now());
+    }
+    
+    public ObservableList<Person> getPeopleObsListByShift(Integer shift,
+                                                   Integer workcenter,
+                                                   LocalDate date) {
+        return FXCollections.observableList(getPeopleArrayListByShift(shift, workcenter, date));
     }
     private static final String GET_BY_SHIFT_STMT = "SELECT * FROM person "
             + "WHERE workcenter_id = ?";
