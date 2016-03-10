@@ -6,6 +6,8 @@
  * 
  * 2016-03-02 : Added getCurrentShift(person_id) and changed getCurrentShift(person) to call the former method using person.getObjectID()
  * 2016-03-02 : Added getCurrentShift(person_id, date) and changed getCurrentShift(person_id) to call the former method using LocalDate.now()
+ * 
+ * 2016-03-08 : Added both getWeek() methods
  */
 
 /**
@@ -20,73 +22,46 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Map;
 import util.DBConnectionPool;
 
 public class ShiftDateDAO {
 
     private DBConnectionPool connPool;
     
-    
-    
-    private static final String REMOVE_STMT = "DELETE FROM shift_date "
-            + "WHERE  person_id = ? "
-            + "AND   start_date = ?";
     /**
-     * <p>Removes the entry in <code>SHIFT_DATE</code> that matches the
-     * <code>Person</code> and <code>Date</code> parameters.</p>
      * 
-     * <p>PRE: The person and date given are represented by one, and only one,
-     *         entry in the <code>SHIFT_DATE</code> table.</p>
-     * 
-     * <p>POST: There is no entry in the <code>SHIFT_DATE</code> table that
-     *          matches the given person and date.</p>
-     * @param person
-     * @param date 
+     * @param fn
+     * @param ln
+     * @param ph
+     * @return 
      */
-    public void removeStartDate(Person person, Date date) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-
-        try {
-            conn = connPool.getPoolConnection();
-            stmt = conn.prepareStatement(REMOVE_STMT);
-            
-            stmt.setInt(1, person.getObjectID());
-            stmt.setDate(2, date);
-            stmt.executeUpdate();
-
-        } catch (SQLException se) {
-            throw new RuntimeException(
-                    "A database error occurred. " + se.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("Exception: " + e.getMessage());
-        } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException se) {
-                    se.printStackTrace(System.err);
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                }
-            }
+    public boolean addStartDate(Person person, Date date) {
+        if (person == null || date == null) {
+            return false;
         }
+
+        insert(person.getObjectID(), person.getShiftID(), date);
+
+        return true;
     }
     
-    
-    
-    
+    private static final String GET_CURRENT_SHIFT_STMT = "SELECT * FROM shift_date "
+            + "WHERE person_id = ?";
     public Integer getCurrentShift(Person person) { return getCurrentShift(person.getObjectID()); }
     //  end method getCurrentShift(Person)
+    
     
     public Integer getCurrentShift(Integer person_id) { return getCurrentShift(person_id, LocalDate.now()); }
     //  end method getCurrentShift(person_id)
     
+    /**
+     * 
+     * @param person_id
+     * @param shift_id
+     * @param date 
+     */
     public Integer getCurrentShift(Integer person_id, LocalDate date) {
         
         PreparedStatement request = null;
@@ -147,17 +122,27 @@ public class ShiftDateDAO {
 
         return -1;
     }
-    private static final String GET_CURRENT_SHIFT_STMT = "SELECT * FROM shift_date "
-            + "WHERE person_id = ?";
+    
+    public ArrayList<String> getWeek(int person_id, LocalDate firstDay) {
+        ArrayList<String> shifts = new ArrayList<>();
+        Map<Integer, String> shiftMap = (new ShiftDAO()).getMap();
+        
+        for (int x = 0; x < 7; x++) {
+            LocalDate date = firstDay.plusDays(x);
+            int shift = getCurrentShift(person_id, date);
+            shifts.add(shiftMap.get(shift));
+        }
+        
+        return shifts;
+    }  // end getWeek(Person, LocalDate)
+    
+    public ArrayList<String> getWeek(Person person, LocalDate firstDay) {
+        int person_id = person.getObjectID();
+        return getWeek(person_id, firstDay);
+    }  // end getWeek(Person, LocalDate)
     
     private static final String INSERT_STMT = "INSERT INTO shift_date "
             + "VALUES (?, ?, ?, ?)";
-    /**
-     * 
-     * @param person_id
-     * @param shift_id
-     * @param date 
-     */
     public void insert(Integer person_id, Integer shift_id, Date date) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -204,29 +189,57 @@ public class ShiftDateDAO {
         
         
     }  //  end method insert()
-    
-    
-
-    
     /**
+     * <p>Removes the entry in <code>SHIFT_DATE</code> that matches the
+     * <code>Person</code> and <code>Date</code> parameters.</p>
      * 
-     * @param fn
-     * @param ln
-     * @param ph
-     * @return 
+     * <p>PRE: The person and date given are represented by one, and only one,
+     *         entry in the <code>SHIFT_DATE</code> table.</p>
+     * 
+     * <p>POST: There is no entry in the <code>SHIFT_DATE</code> table that
+     *          matches the given person and date.</p>
+     * @param person
+     * @param date 
      */
-    public boolean addStartDate(Person person, Date date) {
-        if (person == null || date == null) {
-            return false;
+    
+    private static final String REMOVE_STMT = "DELETE FROM shift_date "
+            + "WHERE  person_id = ? "
+            + "AND   start_date = ?";
+    public void removeStartDate(Person person, Date date) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = connPool.getPoolConnection();
+            stmt = conn.prepareStatement(REMOVE_STMT);
+            
+            stmt.setInt(1, person.getObjectID());
+            stmt.setDate(2, date);
+            stmt.executeUpdate();
+
+        } catch (SQLException se) {
+            throw new RuntimeException(
+                    "A database error occurred. " + se.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Exception: " + e.getMessage());
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    se.printStackTrace(System.err);
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                }
+            }
         }
-
-        insert(person.getObjectID(), person.getShiftID(), date);
-
-        return true;
     }
     
-    
-
     /**
      * TODO:  Fix this
      * @param person 

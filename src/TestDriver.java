@@ -8,6 +8,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import util.DBBuild;
+import window.MainStage;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -44,6 +45,10 @@ public class TestDriver extends Application {
         Button editPersonButton = new Button("Test 'Edit Person'");
         editPersonButton.setOnAction(e -> (new EditPersonStage()).display(null));
         layout.getChildren().add(editPersonButton);
+        
+        Button mainStageButton = new Button("Test Main Stage");
+        mainStageButton.setOnAction(e -> (new MainStage()).display());
+        layout.getChildren().add(mainStageButton);
         
         stage.show();
     }

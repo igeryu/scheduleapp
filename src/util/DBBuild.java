@@ -6,6 +6,8 @@
  * 2016-03-04 : Created file
  * 
  * 2016-03-05 : Got testDatabase() working, which will call buildDatabase() if the database is not built.
+ * 
+ * 2016-03-08 : Fixed buildObjectIdsTable() so that PERSON and SHIFT_DATE start with an ID of 1
  */
 package util;
 
@@ -182,7 +184,7 @@ public class DBBuild {
                                          + "idnumber INTEGER)",
                                            CLASS_NAME_SIZE);
         String insertString = "INSERT INTO objectids VALUES "
-                            + "('Person', 0), ('Shift_Date', 0)";
+                            + "('Person', 1), ('Shift_Date', 1)";
         try {
             PreparedStatement buildStmt = conn.prepareStatement(buildString);
             buildStmt.execute();
