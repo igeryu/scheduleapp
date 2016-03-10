@@ -17,20 +17,21 @@ import util.DBConnectionPool;
 class ObjectIdDAO {
     
    //public static final String COURSE="Course";
-   public static final String PERSON="Person";
+   public static final String PERSON = "Person";
+   public static final String SHIFT_DATE = "Shift_Date";
    private DBConnectionPool connPool;
    
    public ObjectIdDAO() {}
    
    public int getNextObjectID(String objectClassName) {
       Connection conn = null;
-      PreparedStatement queryStmt=null;
-      PreparedStatement incrStmt=null;
+      PreparedStatement queryStmt = null;
+      PreparedStatement incrStmt = null;
       ResultSet rset = null;
       int id=-1;
       try {
-         conn=connPool.getPoolConnection();
-         queryStmt=conn.prepareStatement(NEXT_ID_QUERY);
+         conn = connPool.getPoolConnection();
+         queryStmt = conn.prepareStatement(NEXT_ID_QUERY);
          queryStmt.setString(1,objectClassName);
          rset=queryStmt.executeQuery();
          if (rset.next()) {
@@ -61,7 +62,7 @@ class ObjectIdDAO {
       return id;
    }
    private static final String NEXT_ID_QUERY=
-      "SELECT IDNumber FROM alan.ObjectIDs WHERE className=?";
+      "SELECT IDNumber FROM ObjectIDs WHERE className = ?";
    private static final String UPDATE_ID_CMD=
-      "UPDATE alan.ObjectIDs SET IDNumber=? WHERE className=?";
+      "UPDATE ObjectIDs SET IDNumber = ? WHERE className = ?";
 }

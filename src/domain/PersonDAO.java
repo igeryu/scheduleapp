@@ -1,4 +1,23 @@
 //  PersonDAO.java
+
+/**
+ * Changelog:
+ * 2016-02-24 : Added getPeopleByShift() method to assist with new JavaFX layout
+ * 
+ * 2016-02-25 : Added workcenter to GET_BY_SHIFT_STMT WHERE clause, and modified getPeopleByShift() to use that new argument
+ * 
+ * 2016-02-29 : Updated addPerson() to accept shift date and properly update the SHIFT_DATE table
+ * 2016-02-29 : Updated update() method to make changes to all PERSON attributes
+ * 
+ * 2016-03-02 : Changed getPeopleByShift() to getPeopleListByShift()
+ * 2016-03-02 : Changed getPeople() to getPeopleTableByShift()
+ * 2016-03-02 : Added getPeopleListByShift(workcenter, shift, date).  The existing getPeopleListByShift() now calls this new overload using today's date.
+ * 
+ * 2016-03-07 : Renamed both getPeopleListByShift() methods to getPeopleObsListByShift()
+ * 2016-03-07 : Added both getPeopleArrayListByShift() methods
+ * 2016-03-07 : Added getAllPeople()
+ */
+
 /**
  *
  * @author Alan Johnson
@@ -6,11 +25,15 @@
 package domain;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Map;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javax.swing.table.TableModel;
 import net.proteanit.sql.DbUtils;
 import util.DBConnectionPool;
@@ -18,12 +41,14 @@ import util.DBConnectionPool;
 public class PersonDAO {
 
     private DBConnectionPool connPool;
-
-    public int countPeople() {
-        return getPeople().size();
-    }
-
+    
+    //  TODO:  Build an arraylist of all people at initialization, then make methods to return inviduals that match criteria (shift, workcenter, etc)
+    //  TODO:  Refactor other classes that use PersonDAO, to only use one instance, so that the population of the arraylist mentioned above happens only when necessary
+    
     public void delete(Person person) {
+        //  DEBUG:
+        System.out.println("\n[PersonDAO_New.delete()] Entering method...");
+        
         Connection conn = null;
         PreparedStatement stmt = null;
 
@@ -55,9 +80,11 @@ public class PersonDAO {
                 }
             }
         }
+        System.out.println("\n[PersonDAO_New.delete()] Exiting method...");
     }
-    private static final String DELETE_STMT = "DELETE FROM alan.person "
+    private static final String DELETE_STMT = "DELETE FROM person "
             + "WHERE id = ?";
+    
     
     public Person getPerson(int personID) {
         Person person = null;
@@ -77,7 +104,7 @@ public class PersonDAO {
                 String lastName = rset.getString("last_name");
 
                 //  TODO:  Fix this:
-                person = new Person(id, firstName, lastName, 0, 0, 0);
+                person = new Person(id, firstName, lastName, 0, 0, 0, 0);
             }
         } catch (SQLException se) {
             throw new RuntimeException(
@@ -103,9 +130,10 @@ public class PersonDAO {
 
         return person;
     }
-    private static final String GET_STMT = "SELECT * FROM alan.person "
+    private static final String GET_STMT = "SELECT * FROM person "
             + "WHERE id = ?";
 
+    
     public ArrayList<Person> findPeople(String search) {
 
         PreparedStatement request = null;
@@ -127,7 +155,7 @@ public class PersonDAO {
                 String lastName = rset.getString("last_name");
 
                 //  TODO:  Fix this:
-                Person person = new Person(id, firstName, lastName, 0, 0, 0);
+                Person person = new Person(id, firstName, lastName, 0, 0, 0, 0);
 
                 personList.add(person);
             }
@@ -156,40 +184,57 @@ public class PersonDAO {
 
         return personList;
     }
-    private static final String SEARCH_STMT = "SELECT * FROM alan.person "
+    private static final String SEARCH_STMT = "SELECT * FROM person "
             + "WHERE (UPPER(first_name) LIKE ?) "
             + "OR    (UPPER(last_name)  LIKE ?)";
 
-    public ArrayList<Person> getPeople() {
+    public ArrayList<Person> getAllPeople() {
 
-        ArrayList<Person> personList = new ArrayList<>();
-        Statement request = null;
+        PreparedStatement request = null;
         Connection conn = null;
-
+        
+        ArrayList<Person> personList = new ArrayList<>();
+//        Map<Integer, String> rankMap = (new RankDAO()).getMap();
+//        Map<Integer, String> skillMap = (new SkillDAO()).getMap();
+        
         try {
             conn = DBConnectionPool.getPoolConnection();
-            String requestString = "SELECT * FROM alan.person";
-            request = conn.createStatement();
-            ResultSet rset = null;
+            request = conn.prepareStatement(GET_ALL_STMT);
 
-            rset = request.executeQuery(requestString);
-
+            ResultSet rset = request.executeQuery();
+            
             while (rset.next()) {
                 int id = rset.getInt("id");
-                String firstName = rset.getString("First_Name");
-                String lastName = rset.getString("Last_Name");
+                
+                String firstName = rset.getString("first_name");
+                String lastName = rset.getString("last_name");
+                int rank = rset.getInt("rank_id");
+                int skill = rset.getInt("skill_id");
+                int workcenter = rset.getInt("workcenter_id");
+                
+                
+                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
+                                + "rank: %s\nskill: %s", rank, skill);
 
                 //  TODO:  Fix this:
-                Person person = new Person(id, firstName, lastName, 0, 0, 0);
+                Person person = new Person(firstName, lastName, rank, workcenter, skill);
+                person.setObjectID(id);
+                
+                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
+                                + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
 
                 personList.add(person);
             }
+            
+//            System.out.println("\nTest Point A");
+            
+            return personList;
 
         } catch (SQLException se) {
             throw new RuntimeException(
-                    "A database error occurred. " + se.getMessage());
+                    "[PersonDAO_New.getPeopleByShift()] A database error occurred. " + se.getMessage());
         } catch (Exception e) {
-            System.out.println("getPeople() ~ Exception: " + e.getMessage());
+            throw new RuntimeException("Exception: " + e.getMessage());
         } finally {
             if (request != null) {
                 try {
@@ -207,22 +252,111 @@ public class PersonDAO {
             }
         }
 
-        return personList;
+//        return null;
     }
+    private static final String GET_ALL_STMT = "SELECT * FROM person";
+    
+    public ArrayList<Person> getPeopleArrayListByShift(Integer shift,
+                                                   int workcenter,
+                                                   LocalDate date) {
 
+        PreparedStatement request = null;
+        Connection conn = null;
+        if (date == null) date = LocalDate.now();
+        
+        ObservableList<Person> personData = null;
+        ArrayList<Person> personList = new ArrayList<>();
+        Map<Integer, String> rankMap = (new RankDAO()).getMap();
+        Map<Integer, String> skillMap = (new SkillDAO()).getMap();
+        
+        try {
+            conn = DBConnectionPool.getPoolConnection();
+            request = conn.prepareStatement(GET_BY_SHIFT_STMT);
+            request.setInt(1, workcenter);
+
+            ResultSet rset = request.executeQuery();
+            ShiftDateDAO shiftDateDao = new ShiftDateDAO();
+            
+            while (rset.next()) {
+                int id = rset.getInt("id");
+                int shift_id = shiftDateDao.getCurrentShift(id, date);
+                
+                if (shift_id != shift)
+                    continue;
+                
+                String firstName = rset.getString("first_name");
+                String lastName = rset.getString("last_name");
+                String rank = rankMap.get(rset.getInt("rank_id"));
+                String skill = skillMap.get(rset.getInt("skill_id"));
+                
+                
+                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
+                                + "rank: %s\nskill: %s", rank, skill);
+
+                //  TODO:  Fix this:
+                Person person = new Person(firstName, lastName, rank, skill);
+                
+                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
+                                + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
+
+                personList.add(person);
+            }
+            
+//            System.out.println("\nTest Point A");
+            
+            return personList;
+
+        } catch (SQLException se) {
+            throw new RuntimeException(
+                    "[PersonDAO_New.getPeopleByShift()] A database error occurred. " + se.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Exception: " + e.getMessage());
+        } finally {
+            if (request != null) {
+                try {
+                    request.close();
+                } catch (SQLException se) {
+                    se.printStackTrace(System.err);
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                }
+            }
+        }
+
+//        return null;
+    }
+    
+    public ArrayList<Person> getPeopleArrayListByShift(Integer shift,
+                                                   Integer workcenter) {
+        return getPeopleArrayListByShift(shift, workcenter, LocalDate.now());
+    }
     
     
-    private static final String GET_STATEMENT = "SELECT rank.name AS \"Rank\", "
-            + "last_name AS \"Last Name\", first_name AS \"First Name\", "
-            + "shift.name AS \"Shift\", skill.level AS \"Skill Lv\" "
-            + "FROM alan.person, rank, workcenter, shift, skill "
-            + "WHERE workcenter.id = ? "
-            + "AND   person.workcenter_id = workcenter.id "
-            + "AND   shift.id = ? "
-            + "AND   person.shift_id = shift.id "
-            + "AND   person.rank_id = rank.id "
-            + "AND   person.skill_id = skill.id";
-    public TableModel getPeople(Integer workcenter, Integer shift) {
+    public ObservableList<Person> getPeopleObsListByShift(Integer shift,
+                                                   Integer workcenter) {
+        return getPeopleObsListByShift(shift, workcenter, LocalDate.now());
+    }
+    
+    public ObservableList<Person> getPeopleObsListByShift(Integer shift,
+                                                   Integer workcenter,
+                                                   LocalDate date) {
+        return FXCollections.observableList(getPeopleArrayListByShift(shift, workcenter, date));
+    }
+    private static final String GET_BY_SHIFT_STMT = "SELECT * FROM person "
+            + "WHERE workcenter_id = ?";
+    
+   /**
+    * Depreciated
+    * @param workcenter
+    * @param shift
+    * @return 
+    */
+    public TableModel getPeopleTableByShift(Integer workcenter, Integer shift) {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -266,11 +400,21 @@ public class PersonDAO {
 
         return null;
     }
+    private static final String GET_STATEMENT = "SELECT rank.name AS \"Rank\", "
+            + "last_name AS \"Last Name\", first_name AS \"First Name\", "
+            + "shift.name AS \"Shift\", skill.level AS \"Skill Lv\" "
+            + "FROM person, rank, workcenter, shift, skill "
+            + "WHERE workcenter.id = ? "
+            + "AND   person.workcenter_id = workcenter.id "
+            + "AND   shift.id = ? "
+            + "AND   person.shift_id = shift.id "
+            + "AND   person.rank_id = rank.id "
+            + "AND   person.skill_id = skill.id";
     
-    private static final String INSERT_STMT = "INSERT INTO alan.person "
-            + "VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_STMT = "INSERT INTO person "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?)";
     
-    public void insert(Person person) {
+    private void insert(Person person) {
         Connection conn = null;
         PreparedStatement stmt = null;
         int rows = 0;
@@ -298,6 +442,7 @@ public class PersonDAO {
             stmt.setInt(4, person.getRankID());
             stmt.setInt(5, person.getWorkcenterID());
             stmt.setInt(6, person.getShiftID());
+            stmt.setInt(7, person.getSkillID());
             stmt.executeUpdate();
             person.setObjectID(personID);
             
@@ -342,21 +487,32 @@ public class PersonDAO {
      * @param ph
      * @return 
      */
-    public boolean addPerson(String fn, String ln,
-                             Integer rank, Integer workcenter, Integer shift) {
+    public boolean addPerson(String  fn,    String ln,
+                             Integer rank,  Integer workcenter,
+                             Integer shift, Integer skill,
+                             Date startDate) {
         //  TODO:  Fix this:
-        Person person = new Person(-1, fn, ln, rank, workcenter, shift);
-
+        Person person = new Person(-1, fn, ln, rank, workcenter, shift, skill);
+        
         if (person == null) {
             return false;
         }
-
+        
         insert(person);
+        (new ShiftDateDAO()).addStartDate(person, startDate);
 
         return true;
-    }
+    }  // end method addPerson()
+    
+    
+    
+      private static final String UPDATE_STMT = "UPDATE person "
+            + "SET first_name = ?, last_name = ?, "
+            + "rank_id = ?, workcenter_id = ?, "
+            + "shift_id = ?, skill_id = ?"
+            + "WHERE id = ?";
 
-    public void update(Person person) {
+    private void update(Person person) {
         Connection conn = null;
         PreparedStatement stmt = null;
 
@@ -365,7 +521,11 @@ public class PersonDAO {
             stmt = conn.prepareStatement(UPDATE_STMT);
             stmt.setString(1, person.getFirstName());
             stmt.setString(2, person.getLastName());
-            stmt.setInt(4, person.getObjectID());
+            stmt.setInt(3, person.getRankID());
+            stmt.setInt(4, person.getWorkcenterID());
+            stmt.setInt(5, person.getShiftID());
+            stmt.setInt(6, person.getSkillID());
+            stmt.setInt(7, person.getObjectID());
             stmt.executeUpdate();
 
         } catch (SQLException se) {
@@ -390,8 +550,12 @@ public class PersonDAO {
             }
         }
     }
-    private static final String UPDATE_STMT = "UPDATE alan.person "
-            + "SET first_name = ?, last_name = ?, phone = ?"
-            + "WHERE id = ?";
+    
+    public boolean updatePerson(Person person) {
+        if (person == null) {
+            return false;
+        }
+        return true;
+    }  //  end method updatePerson()
 
 }

@@ -1,9 +1,14 @@
 
-import domain.Person;
-import domain.PersonDAO;
-import forms.AddPersonFrame;
-import java.util.ArrayList;
-import util.DBConnectionPool;
+import window.AddPersonStage;
+import window.EditPersonStage;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import util.DBBuild;
+import window.MainStage;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -14,23 +19,38 @@ import util.DBConnectionPool;
  *
  * @author alanjohnson
  */
-public class TestDriver {
+public class TestDriver extends Application {
     
     public static void main (String[] args) {
-        PersonDAO personDao = new PersonDAO();
         
-        //personDao.addPerson("Test01_First", "Test01_Last");
-        //personDao.addPerson("Test02_First", "Test02_Last");
+        launch(args);
         
-        ArrayList<Person> personList = personDao.getPeople();
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        //  DEBUG:
+        System.out.println("\n[TestDriver.start()] Testing database...");
         
-//        for (Person p : personList) {
-//            System.out.printf("\nPerson: \"%s %s\"", p.getFirstName(), p.getLastName());
-//        }
+        DBBuild.testDatabase();
+        Stage stage = new Stage();
+        Pane layout = new VBox(30);
+        Scene scene = new Scene(layout, 200, 200);
+        stage.setScene(scene);
         
-        AddPersonFrame frame = new AddPersonFrame();
-        frame.setVisible(true);
+        Button addPersonButton = new Button("Test 'Add Person'");
+        addPersonButton.setOnAction(e -> (new AddPersonStage()).display());
+        layout.getChildren().add(addPersonButton);
         
+        Button editPersonButton = new Button("Test 'Edit Person'");
+        editPersonButton.setOnAction(e -> (new EditPersonStage()).display(null));
+        layout.getChildren().add(editPersonButton);
+        
+        Button mainStageButton = new Button("Test Main Stage");
+        mainStageButton.setOnAction(e -> (new MainStage()).display());
+        layout.getChildren().add(mainStageButton);
+        
+        stage.show();
     }
     
 }
