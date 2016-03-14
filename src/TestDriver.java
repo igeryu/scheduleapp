@@ -34,6 +34,7 @@ public class TestDriver extends Application {
         
         DBBuild.testDatabase();
         Stage stage = new Stage();
+        stage.setTitle("Schedule Application");
         Pane layout = new VBox(30);
         Scene scene = new Scene(layout, 200, 200);
         stage.setScene(scene);

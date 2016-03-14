@@ -9,7 +9,26 @@ Functionality will be added to allow for the following features (not all inclusi
 - Check for conflicts between leave/appointments/events
 - Verify personnel and events are scheduled out for the next 30/60/90/etc. days
 
+![Shift View - All](https://github.com/igeryu/scheduleapp/blob/develop/Screen%20Captures/2016-03-13_18-12%20Shift%20View%20A.png)
+
+![Shift View - Filtered](https://github.com/igeryu/scheduleapp/blob/develop/Screen%20Captures/2016-03-13_18-12%20Shift%20View%20B.png)
+
 ## Change Log
+
+### 2016-03-13
+
+[**PersonDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java)
+
+- Modified `getPeopleArrayListByShift(shift, workcenter, date)` to allow for the shift or date parameters to be wildcards (`< 1`)
+- Changed all method parameters from having an `Integer` parameter to primitive `int` parameters
+
+[**MainStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/MainStage.java)
+
+- Changed `rootLayout` to a `BorderPane` (from `StackPane`)
+- Grouped class variables by type/function
+- Extracted code to build `scheduleTab`, `manageTab`, and `filtersBox` from `display()` to `buildScheduleTab()`, `buildManageTab()` and `buildFiltersBox()`
+- Changed name of `rebuildTable()` to `populateShiftViewTable()`
+- Changed name of `scheduleTable` to `outputTable`
 
 ### 2016-03-09
 

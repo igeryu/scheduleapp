@@ -16,6 +16,9 @@
  * 2016-03-07 : Renamed both getPeopleListByShift() methods to getPeopleObsListByShift()
  * 2016-03-07 : Added both getPeopleArrayListByShift() methods
  * 2016-03-07 : Added getAllPeople()
+ * 
+ * 2016-03-13 : Modified getPeopleArrayListByShift(shift, workcenter, date) to allow for the shift or date parameters to be wildcards (< 1)
+ * 2016-03-13 : Changed all method parameters from having an Integer parameter to primitive int parameters
  */
 
 /**
@@ -194,8 +197,6 @@ public class PersonDAO {
         Connection conn = null;
         
         ArrayList<Person> personList = new ArrayList<>();
-//        Map<Integer, String> rankMap = (new RankDAO()).getMap();
-//        Map<Integer, String> skillMap = (new SkillDAO()).getMap();
         
         try {
             conn = DBConnectionPool.getPoolConnection();
@@ -256,9 +257,9 @@ public class PersonDAO {
     }
     private static final String GET_ALL_STMT = "SELECT * FROM person";
     
-    public ArrayList<Person> getPeopleArrayListByShift(Integer shift,
-                                                   int workcenter,
-                                                   LocalDate date) {
+    public ArrayList<Person> getPeopleArrayListByShift(int shift,
+                                                       int workcenter,
+                                                       LocalDate date) {
 
         PreparedStatement request = null;
         Connection conn = null;
@@ -266,13 +267,15 @@ public class PersonDAO {
         
         ObservableList<Person> personData = null;
         ArrayList<Person> personList = new ArrayList<>();
-        Map<Integer, String> rankMap = (new RankDAO()).getMap();
-        Map<Integer, String> skillMap = (new SkillDAO()).getMap();
         
         try {
             conn = DBConnectionPool.getPoolConnection();
             request = conn.prepareStatement(GET_BY_SHIFT_STMT);
-            request.setInt(1, workcenter);
+            
+            if (workcenter >= 1)
+                request.setInt(1, workcenter);
+            else
+                request.setString(1, "%");
 
             ResultSet rset = request.executeQuery();
             ShiftDateDAO shiftDateDao = new ShiftDateDAO();
@@ -281,20 +284,21 @@ public class PersonDAO {
                 int id = rset.getInt("id");
                 int shift_id = shiftDateDao.getCurrentShift(id, date);
                 
-                if (shift_id != shift)
+                if (shift >= 1 && shift_id != shift)
                     continue;
                 
                 String firstName = rset.getString("first_name");
                 String lastName = rset.getString("last_name");
-                String rank = rankMap.get(rset.getInt("rank_id"));
-                String skill = skillMap.get(rset.getInt("skill_id"));
-                
+                int rank_id = rset.getInt("rank_id");
+                int skill_id = rset.getInt("skill_id");
+                int workcenter_id = rset.getInt("workcenter_id");
                 
                 System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "rank: %s\nskill: %s", rank, skill);
+                                + "rank: %s\nskill: %s", rank_id, skill_id);
 
                 //  TODO:  Fix this:
-                Person person = new Person(firstName, lastName, rank, skill);
+                Person person = new Person(firstName, lastName, rank_id, workcenter_id, skill_id);
+                person.setObjectID(id);
                 
                 System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
                                 + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
@@ -331,24 +335,24 @@ public class PersonDAO {
 //        return null;
     }
     
-    public ArrayList<Person> getPeopleArrayListByShift(Integer shift,
-                                                   Integer workcenter) {
+    public ArrayList<Person> getPeopleArrayListByShift(int shift,
+                                                       int workcenter) {
         return getPeopleArrayListByShift(shift, workcenter, LocalDate.now());
     }
     
     
-    public ObservableList<Person> getPeopleObsListByShift(Integer shift,
-                                                   Integer workcenter) {
+    public ObservableList<Person> getPeopleObsListByShift(int shift,
+                                                          int workcenter) {
         return getPeopleObsListByShift(shift, workcenter, LocalDate.now());
     }
     
-    public ObservableList<Person> getPeopleObsListByShift(Integer shift,
-                                                   Integer workcenter,
-                                                   LocalDate date) {
+    public ObservableList<Person> getPeopleObsListByShift(int shift,
+                                                          int workcenter,
+                                                          LocalDate date) {
         return FXCollections.observableList(getPeopleArrayListByShift(shift, workcenter, date));
     }
     private static final String GET_BY_SHIFT_STMT = "SELECT * FROM person "
-            + "WHERE workcenter_id = ?";
+            + "WHERE CAST (workcenter_id AS CHAR) LIKE ?";
     
    /**
     * Depreciated
@@ -356,7 +360,7 @@ public class PersonDAO {
     * @param shift
     * @return 
     */
-    public TableModel getPeopleTableByShift(Integer workcenter, Integer shift) {
+    public TableModel getPeopleTableByShift(int workcenter, int shift) {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -488,8 +492,8 @@ public class PersonDAO {
      * @return 
      */
     public boolean addPerson(String  fn,    String ln,
-                             Integer rank,  Integer workcenter,
-                             Integer shift, Integer skill,
+                             int rank,  int workcenter,
+                             int shift, int skill,
                              Date startDate) {
         //  TODO:  Fix this:
         Person person = new Person(-1, fn, ln, rank, workcenter, shift, skill);

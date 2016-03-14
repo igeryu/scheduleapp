@@ -5,9 +5,14 @@
     -fx-spacing: 8;
 }
 
-.options {
+.schedule {
     -fx-background-color: #D9E4F1;
     -fx-border-color: #D9E4F1;
+}
+
+.manage {
+    -fx-background-color: #C7E3A0;
+    -fx-border-color: #C7E3A0;
 }
 
 .file {
@@ -31,4 +36,8 @@
 #swing_style {
     /* -fx-text-fill: */
     -fx-background-color:springgreen;
+}
+
+.separator .line {
+    -fx-background: #DDDDDD;
 }

@@ -8,12 +8,20 @@
  * 
  * 2016-03-09 : Schedule Shift View works, shows each person (rows) with their current shift today and next six days.
  * 2016-03-09 : Made shift cells color-coded for easier viewing.
+ * 
+ * 2016-03-13 : Changed rootLayout to a BorderPane (from StackPane)
+ * 2016-03-13 : Grouped class variables by type/function
+ * 2016-03-13 : Extracted code to build scheduleTab, manageTab, and filtersBox from display() to buildScheduleTab(), buildManageTab() and buildFiltersBox()
+ * 2016-03-13 : Changed name of rebuildTable() to populateShiftViewTable()
+ * 2016-03-13 : Changed name of scheduleTable to outputTable
  */
 package window;
 
 import domain.Person;
 import domain.PersonDAO;
+import domain.ShiftDAO;
 import domain.ShiftDateDAO;
+import domain.WorkcenterDAO;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,17 +30,25 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Separator;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -48,15 +64,25 @@ public class MainStage {
     
     // ===========================  Inputs  ==========================
     private static Stage window;
+    private static VBox fileWindow;
+    private static Tab fileTab;
+    private static int workcenter = -1;
+    private static int shift = -1;
     
     // ===========================   Misc  ===========================
     private static TabPane tabPane;
-    private static Tab manageTab;
-    private static TableView scheduleTable;
     private static HBox filtersBox;
-    private static HBox optionsBox;
-    private static VBox scheduleWindow;
+    private static TableView outputTable;
+    
+    // =========================   Schedule   ========================
     private static Tab scheduleTab;
+    private static VBox scheduleWindow;
+    private static HBox scheduleOptionsBox;
+    
+    // ==========================   Manage   =========================
+    private static Tab manageTab;
+    private static VBox manageWindow;
+    private static HBox manageOptionsBox;
     
     /**
      * <p>Adapted from
@@ -104,16 +130,6 @@ public class MainStage {
                                 break;
                         }
                     }
-
-                    // Style all dates in March with a different color.
-//                    if (item.getMonth() == Month.MARCH) {
-//                        setTextFill(Color.CHOCOLATE);
-//                        setStyle("-fx-background-color: yellow");
-//                    } else {
-//                        setTextFill(Color.BLACK);
-//                        setStyle("");
-//                    }
-                    
                 }
             };
         });
@@ -127,7 +143,7 @@ public class MainStage {
     public void display () {
         window = new Stage();
         window.setTitle("Schedule Application");
-        StackPane rootLayout = new StackPane();
+        BorderPane rootLayout = new BorderPane();
         int width = 650;
         int height = 300;
         Scene scene = new Scene(rootLayout, width, height);
@@ -137,116 +153,208 @@ public class MainStage {
         
         window.setMinWidth(width);
         window.setMinHeight(height);
+        
         // ===========================   Tab Area  ============================
-        //      =====================  Schedule Tab  =====================
         fileTab = new Tab("File");
         fileTab.setClosable(false);
         fileTab.getStyleClass().add("file");
         fileWindow = new VBox();
         fileTab.setContent(fileWindow);
-        
+        outputTable = new TableView();
+
         //      =====================  Schedule Tab  =====================
-        scheduleTab = new Tab("Schedule");
-        scheduleTab.setClosable(false);
-        scheduleTab.getStyleClass().add("options");
-        scheduleWindow = new VBox();
-        scheduleTab.setContent(scheduleWindow);
-        
-        //           ================  Options Row   ================
-        optionsBox = new HBox(10);
-        Button testButton = new Button("Get Shifts");
-        testButton.setOnAction(e -> System.out.println("\n" + (new ShiftDateDAO()).getWeek(0, LocalDate.now())));
-        optionsBox.getChildren().addAll(new Label("Options..."), testButton);
-        optionsBox.getStyleClass().addAll("options");
-        
-        //           ================  Filters Row   ================
-        filtersBox = new HBox(10);
-        filtersBox.getChildren().add(new Label("Filters..."));
-        filtersBox.getStyleClass().add("pane");
-        
-        //           ============  Main Schedule Window  ============
-        scheduleTable = new TableView();
-        int scheduleBoxWidth = 500;
-        int scheduleBoxHeight = 500;
-        scheduleTable.setMinSize(scheduleBoxWidth, scheduleBoxHeight);
-        scheduleTable.getStyleClass().add("pane");
-        scheduleTable.getSelectionModel().setCellSelectionEnabled(true);
-        scheduleTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        scheduleTable.setId("schedule_table");
-        
-        //           ===========  Finalize Schedule Tab   ===========
-        scheduleWindow.getChildren().addAll(optionsBox, filtersBox, scheduleTable);
+        buildScheduleTab();
         
         //      ======================  Manage Tab  ======================
-        manageTab = new Tab("Manage");
-        manageTab.setClosable(false);
+        buildManageTab();
+        
+        // ==========================  Filters Row   ==========================
+        buildFiltersBox();
+        
+        
         
         //      ====================  Finalize Tabs   ====================
+        buildShiftViewTable();
         tabPane = new TabPane();
         tabPane.getTabs().addAll(fileTab, scheduleTab, manageTab);
         tabPane.getSelectionModel().select(scheduleTab);
-        rootLayout.getChildren().add(tabPane);
+        rootLayout.setTop(tabPane);
+        VBox displayBox = new VBox();
+        displayBox.getChildren().addAll(filtersBox, outputTable);
+        rootLayout.setCenter(displayBox);
 
         // =============================  Finish   ============================
         //  TODO: Change modality once this is actually the main window:
         window.initModality(Modality.APPLICATION_MODAL);
-        rebuildTable();
+        populateShiftViewTable();
         resize();
 //        window.setMaximized(true);
         window.showAndWait();
       
     }  //  end method display(Person)
-    private static VBox fileWindow;
-    private static Tab fileTab;
+
+    private void buildFiltersBox() {
+        filtersBox = new HBox();
+        double scaleFactor = .8;
+//        filtersBox.getChildren().add(new Label("Filters..."));
+        
+        // ========================  Workcenters   =======================
+        filtersBox.getChildren().add(new Label("Workcenters:"));
+        ObservableList<String> workcenterList = (new WorkcenterDAO()).getList();
+        ToggleGroup workcenterGroup = new ToggleGroup();
+        workcenterGroup.selectedToggleProperty().addListener((ov, oldToggle, newToggle) -> {
+            workcenter = workcenterGroup.getToggles().indexOf(newToggle);
+            populateShiftViewTable();
+        });
+        
+        RadioButton newButton = new RadioButton("All");
+        newButton.setToggleGroup(workcenterGroup);
+        filtersBox.getChildren().add(newButton);
+        workcenterGroup.selectToggle(newButton);
+        newButton.setScaleX(scaleFactor);
+        newButton.setScaleY(scaleFactor);
+        
+        for (String item : workcenterList) {
+            newButton = new RadioButton(item);
+            newButton.setToggleGroup(workcenterGroup);
+            newButton.setScaleX(scaleFactor);
+            newButton.setScaleY(scaleFactor);
+            filtersBox.getChildren().add(newButton);
+        }
+        
+        Separator separator = new Separator();
+//        separator.setValignment(VPos.CENTER);
+        separator.setOrientation(Orientation.VERTICAL);
+        filtersBox.getChildren().add(separator);
+        
+        // ==========================  Shifts   ==========================
+        filtersBox.getChildren().add(new Label("Shifts:"));
+        ObservableList<String> shiftList = (new ShiftDAO()).getList();
+        ToggleGroup shiftGroup = new ToggleGroup();
+        shiftGroup.selectedToggleProperty().addListener((ov, oldToggle, newToggle) -> {
+            shift = shiftGroup.getToggles().indexOf(newToggle);
+            populateShiftViewTable();
+        });
+        
+        newButton = new RadioButton("All");
+        newButton.setToggleGroup(shiftGroup);
+        filtersBox.getChildren().add(newButton);
+        shiftGroup.selectToggle(newButton);
+        newButton.setScaleX(scaleFactor);
+        newButton.setScaleY(scaleFactor);
+        
+        for (String item : shiftList) {
+            newButton = new RadioButton(item);
+            newButton.setToggleGroup(shiftGroup);
+            newButton.setScaleX(scaleFactor);
+            newButton.setScaleY(scaleFactor);
+            filtersBox.getChildren().add(newButton);
+        }
+        
+        filtersBox.getStyleClass().add("pane");
+    }
     
-    private void rebuildTable() {
+    private void buildManageTab() {
+        manageWindow = new VBox();
+        
+        manageTab = new Tab("Manage");
+        manageTab.setClosable(false);
+        manageTab.getStyleClass().add("manage");
+        manageTab.setContent(manageWindow);
+        
+        //           ================  Options Row   ================
+        manageOptionsBox = new HBox(10);
+        
+        Button addPersonButton = new Button("Add Person");
+        addPersonButton.setOnAction(e -> AddPersonStage.display());
+        
+        Button editPersonButton = new Button("Edit Person");
+        editPersonButton.setOnAction(e -> EditPersonStage.display(null));
+        
+        manageOptionsBox.getChildren().addAll(addPersonButton, editPersonButton);
+        manageOptionsBox.getStyleClass().addAll("options");
+        
+        //           ===========  Finalize Schedule Tab   ===========
+//        manageWindow.getChildren().addAll(manageOptionsBox, filtersBox, outputTable);
+        manageWindow.getChildren().addAll(manageOptionsBox);
+    }
+    
+    private void buildScheduleTab() {
+        scheduleWindow = new VBox();
+        
+        scheduleTab = new Tab("Schedule");
+        scheduleTab.setClosable(false);
+        scheduleTab.getStyleClass().add("schedule");
+        scheduleTab.setContent(scheduleWindow);
+        
+        //      =====================  Options Row   =====================
+        scheduleOptionsBox = new HBox(10);
+        scheduleOptionsBox.getChildren().addAll(new Label("Options..."));
+        scheduleOptionsBox.getStyleClass().addAll("options");
+        
+        //           ===========  Finalize Schedule Tab   ===========
+//        scheduleWindow.getChildren().addAll(scheduleOptionsBox, filtersBox, outputTable);
+        scheduleWindow.getChildren().addAll(scheduleOptionsBox);
+        
+    }
+    
+    private void populateShiftViewTable() {
         ArrayList<PersonRow> tableRows = new ArrayList<>();
         ArrayList<Person> people;
         //  TODO: Add date parameter and use that for the following value:
         LocalDate today = LocalDate.now();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("d MMM uuuu");
-        scheduleTable.getColumns().clear();
-        
+        outputTable.getColumns().clear();
+
         // =============================  Columns  ============================
-        
         //      =========================  Name  =========================
-        scheduleTable.getColumns().add(createColumn(0, "Name"));
-        
+        outputTable.getColumns().add(createColumn(0, "Name"));
+
         //      ========================  Shifts  ========================
         LocalDate currentDate;
         String dateString;
         for (int x = 0; x < 7; x++) {
             currentDate = today.plusDays(x);
             dateString = currentDate.format(dateFormatter);
-            scheduleTable.getColumns().add(createColumn(x+1, dateString));
+            outputTable.getColumns().add(createColumn(x + 1, dateString));
         }
 
         // ===========================  Build  List  ==========================
         ObservableList<ObservableList<StringProperty>> data = FXCollections.observableArrayList();
         PersonDAO personDao = new PersonDAO();
         ShiftDateDAO shiftDateDao = new ShiftDateDAO();
-        people = personDao.getAllPeople();
-        
+        people = personDao.getPeopleArrayListByShift(shift, workcenter);
+//        people = personDao.getAllPeople();
+
         //  DEBUG:
 //        System.out.println("\n[MainStage.rebuildTable()] people = " + people);
-        
         for (Person p : people) {
             ArrayList<String> shifts = shiftDateDao.getWeek(p, LocalDate.now());
-            
+
             //  DEBUG:
 //            System.out.println("\n[MainStage.rebuildTable()] shifts = " + shifts);
-            
             ObservableList<StringProperty> row = FXCollections.observableArrayList();
             for (String s : shifts) {
                 row.add(new SimpleStringProperty(s));
             }
-            
+
             String personName = p.getRank() + " " + p.getFirstName() + " " + p.getLastName();
             row.add(0, new SimpleStringProperty(personName));
             data.add(row);
         }
-        
-        scheduleTable.setItems(data);
+
+        outputTable.setItems(data);
+    }
+
+    private void buildShiftViewTable() {
+        //      =================  Main Schedule Window  =================
+        int scheduleBoxWidth = 500;
+        int scheduleBoxHeight = 500;
+        outputTable.setMinSize(scheduleBoxWidth, scheduleBoxHeight);
+        outputTable.getStyleClass().add("pane");
+        outputTable.getSelectionModel().setCellSelectionEnabled(true);
+        outputTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        outputTable.setId("schedule_table");
     }
     
     private void resize() {
@@ -315,7 +423,7 @@ public class MainStage {
             java.lang.reflect.Field field;
             try {
                 field = getClass().getDeclaredField("shift" + num);
-                return (Integer) field.get(this);
+                return (int) field.get(this);
             } catch (Exception e) {
                 System.out.println("\n[PersonRow.getShiftField()] Exception thrown");
             }
