@@ -19,6 +19,9 @@
  * 
  * 2016-03-13 : Modified getPeopleArrayListByShift(shift, workcenter, date) to allow for the shift or date parameters to be wildcards (< 1)
  * 2016-03-13 : Changed all method parameters from having an Integer parameter to primitive int parameters
+ * 
+ * 2016-03-25 : Formatted to match Google Java Style
+ * 2016-03-25 : Replaced debug System.out calls with Logger calls
  */
 
 /**
@@ -34,29 +37,35 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
 import javax.swing.table.TableModel;
+
 import net.proteanit.sql.DbUtils;
+
 import util.DBConnectionPool;
 
 public class PersonDAO {
 
-    private DBConnectionPool connPool;
+//    private DBConnectionPool connPool;
+  private static final Logger logger = Logger.getLogger(PersonDAO.class.getName());
     
     //  TODO:  Build an arraylist of all people at initialization, then make methods to return inviduals that match criteria (shift, workcenter, etc)
     //  TODO:  Refactor other classes that use PersonDAO, to only use one instance, so that the population of the arraylist mentioned above happens only when necessary
     
     public void delete(Person person) {
         //  DEBUG:
-        System.out.println("\n[PersonDAO_New.delete()] Entering method...");
+        logger.info("[PersonDAO_New.delete()] Entering method...");
         
         Connection conn = null;
         PreparedStatement stmt = null;
 
         try {
-            conn = connPool.getPoolConnection();
+            conn = DBConnectionPool.getPoolConnection();
             stmt = conn.prepareStatement(DELETE_STMT);
             
             stmt.setInt(1, person.getObjectID());
@@ -83,11 +92,10 @@ public class PersonDAO {
                 }
             }
         }
-        System.out.println("\n[PersonDAO_New.delete()] Exiting method...");
+        logger.info("[PersonDAO_New.delete()] Exiting method...");
     }
     private static final String DELETE_STMT = "DELETE FROM person "
             + "WHERE id = ?";
-    
     
     public Person getPerson(int personID) {
         Person person = null;
@@ -136,7 +144,6 @@ public class PersonDAO {
     private static final String GET_STMT = "SELECT * FROM person "
             + "WHERE id = ?";
 
-    
     public ArrayList<Person> findPeople(String search) {
 
         PreparedStatement request = null;
@@ -214,20 +221,22 @@ public class PersonDAO {
                 int workcenter = rset.getInt("workcenter_id");
                 
                 
-                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "rank: %s\nskill: %s", rank, skill);
+                logger.info(String.format("PersonDAO_New.getPeopleByShift()\n"
+                                + "rank: %s\nskill: %s", rank, skill));
 
                 //  TODO:  Fix this:
-                Person person = new Person(firstName, lastName, rank, workcenter, skill);
+                Person person = new Person(firstName, lastName,
+                                           rank, workcenter, skill);
                 person.setObjectID(id);
                 
-                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
+                logger.info(String.format("PersonDAO_New.getPeopleByShift()\n"
+                                + "person.rank: %s\n\"person.skill: %s",
+                                person.getRank(), person.getSkill()));
 
                 personList.add(person);
             }
-            
-//            System.out.println("\nTest Point A");
+
+            logger.log(Level.FINE, "Test Point A");
             
             return personList;
 
@@ -293,20 +302,24 @@ public class PersonDAO {
                 int skill_id = rset.getInt("skill_id");
                 int workcenter_id = rset.getInt("workcenter_id");
                 
-                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "rank: %s\nskill: %s", rank_id, skill_id);
+                logger.log(Level.FINE,
+                    String.format("PersonDAO_New.getPeopleByShift()\n"
+                                + "rank: %s\nskill: %s", rank_id, skill_id));
 
                 //  TODO:  Fix this:
-                Person person = new Person(firstName, lastName, rank_id, workcenter_id, skill_id);
+                Person person = new Person(firstName, lastName,
+                                           rank_id,   workcenter_id, skill_id);
                 person.setObjectID(id);
                 
-                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
+                logger.log(Level.FINE,
+                    String.format("PersonDAO_New.getPeopleByShift()\n"
+                                + "person.rank: %s\n\"person.skill: %s",
+                                person.getRank(), person.getSkill()));
 
                 personList.add(person);
             }
             
-//            System.out.println("\nTest Point A");
+            logger.log(Level.FINE, String.format("Test Point A"));
             
             return personList;
 
@@ -339,7 +352,6 @@ public class PersonDAO {
                                                        int workcenter) {
         return getPeopleArrayListByShift(shift, workcenter, LocalDate.now());
     }
-    
     
     public ObservableList<Person> getPeopleObsListByShift(int shift,
                                                           int workcenter) {
@@ -377,13 +389,13 @@ public class PersonDAO {
             return DbUtils.resultSetToTableModel(rset);
 
         } catch (SQLException se) {
-            System.out.println("\nA database error occurred. " + se.getMessage());
+            logger.log(Level.WARNING, String.format("A database error occurred. " + se.getMessage()));
         } catch (Exception e) {
             throw new RuntimeException("Exception: " + e.getMessage());
         } finally {
             
             // DEBUG:
-            System.out.println("PersonDAO.getPeople() : finally block");
+            logger.log(Level.FINE, String.format("PersonDAO.getPeople() : finally block"));
             
             if (request != null) {
                 try {
@@ -424,18 +436,18 @@ public class PersonDAO {
         int rows = 0;
 
         //  DEBUG:
-        System.out.println("\nInserting Person:\n" + person);
+        logger.log(Level.FINE, String.format("Inserting Person:\n" + person));
         
         
         try {
             
             //  DEBUG:
-            //System.out.println("\nPersonDAO.insert() Checkpoint A");
+          logger.log(Level.FINE, String.format("PersonDAO.insert() Checkpoint A"));
             
-            conn = connPool.getPoolConnection();
+            conn = DBConnectionPool.getPoolConnection();
             
             //  DEBUG:
-            //System.out.println("\nPersonDAO.insert() Checkpoint B");
+            logger.log(Level.FINE, String.format("PersonDAO.insert() Checkpoint B"));
             
             stmt = conn.prepareStatement(INSERT_STMT);
             ObjectIdDAO objIdDAO = new ObjectIdDAO();
@@ -451,12 +463,12 @@ public class PersonDAO {
             person.setObjectID(personID);
             
             //  DEBUG:
-            System.out.println("\ninsert() successful.");
+            logger.log(Level.FINE, String.format("insert() successful."));
         } catch (SQLException se) {
             throw new RuntimeException(
                     "A database error occurred. " + se.getMessage());
         } catch (Exception e) {
-            System.out.printf("insert() ~ Exception: %s", e.getMessage());
+          logger.log(Level.FINE, String.format("insert() ~ Exception: %s", e.getMessage()));
         } finally {
             if (stmt != null) {
                 try {
@@ -479,9 +491,6 @@ public class PersonDAO {
         
         
     }  //  end method insert()
-    
-    
-
     
     /**
      * TODO:  Need to add Rank, Skill, Work Center
@@ -508,8 +517,6 @@ public class PersonDAO {
         return true;
     }  // end method addPerson()
     
-    
-    
       private static final String UPDATE_STMT = "UPDATE person "
             + "SET first_name = ?, last_name = ?, "
             + "rank_id = ?, workcenter_id = ?, "
@@ -521,7 +528,7 @@ public class PersonDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = connPool.getPoolConnection();
+            conn = DBConnectionPool.getPoolConnection();
             stmt = conn.prepareStatement(UPDATE_STMT);
             stmt.setString(1, person.getFirstName());
             stmt.setString(2, person.getLastName());

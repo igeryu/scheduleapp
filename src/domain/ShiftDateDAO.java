@@ -10,7 +10,7 @@
  * 2016-03-08 : Added both getWeek() methods
  * 
  * 2016-03-24 : Changed all variables from Integer to int where appropriate
- * 2016-03-24 : Replaced debug `System.out` calls with `Logger` calls
+ * 2016-03-24 : Replaced debug System.out calls with Logger calls
  * 2016-03-24 : Formatted to match Google Java Style
  */
 

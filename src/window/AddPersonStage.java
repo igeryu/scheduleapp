@@ -29,6 +29,8 @@
  * 
  * 2016-03-24 : Grouped imports by root package
  * 2016-03-24 : Formatted to match Google Java Style
+ * 
+ * 2016-03-25 : Replaced debug System.out calls with Logger calls
  */
 
 package window;
@@ -42,6 +44,7 @@ import domain.WorkcenterDAO;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.beans.value.ChangeListener;
@@ -281,7 +284,7 @@ public class AddPersonStage {
     startDateBox = new DatePicker(LocalDate.now());
     startDateBox.valueProperty().addListener((obsVal, oldVal, newVal) -> {
       dateChoice = newVal;
-      System.out.printf("\nDate: %s\n", dateChoice);
+      logger.log(Level.FINE, "Date: %s\n", dateChoice);
       updateAllTables();
     });
     GridPane.setConstraints(startDateBox, 3, 1);

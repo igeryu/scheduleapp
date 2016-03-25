@@ -195,7 +195,7 @@ public class DBBuild {
       if (sql.getMessage().contains("already exists in Schema")) {
         return true;
       }
-      System.out.println("SQL Exception: " + sql.getMessage());
+      logger.log(Level.SEVERE, "SQL Exception: " + sql.getMessage());
     }
     return false;
   }

@@ -15,6 +15,13 @@ Functionality will be added to allow for the following features (not all inclusi
 
 ## Change Log
 
+### 2016-03-25
+
+[**PersonDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java)
+
+- Formatted to match Google Java Style
+- Replaced debug `System.out` calls with `Logger` calls
+
 ### 2016-03-24
 
 [**Person.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/Person.java)
@@ -32,7 +39,7 @@ Functionality will be added to allow for the following features (not all inclusi
 
 [**ShiftDateDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/ShiftDateDAO.java)
 
-- Changed all variables from Integer to int where appropriate
+- Changed all variables from `Integer` to `int` where appropriate
 - Replaced debug `System.out` calls with `Logger` calls
 - Formatted to match Google Java Style
 
