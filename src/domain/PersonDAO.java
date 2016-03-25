@@ -439,7 +439,7 @@ public class PersonDAO {
             
             stmt = conn.prepareStatement(INSERT_STMT);
             ObjectIdDAO objIdDAO = new ObjectIdDAO();
-            int personID = objIdDAO.getNextObjectID(ObjectIdDAO.PERSON);
+            int personID = objIdDAO.getNextObjectId(ObjectIdDAO.PERSON);
             stmt.setInt(1, personID);
             stmt.setString(2, person.getFirstName());
             stmt.setString(3, person.getLastName());

@@ -15,6 +15,92 @@ Functionality will be added to allow for the following features (not all inclusi
 
 ## Change Log
 
+### 2016-03-24
+
+[**Person.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/Person.java)
+
+- Changed all variables from `Integer` to `int` where appropriate
+
+[**RankDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/RankDAO.java)
+
+- Grouped and ordered methods into logical groupings
+- Formatted to match Google Java Style
+
+[**ShiftDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/ShiftDAO.java)
+
+- Formatted to match Google Java Style
+
+[**ShiftDateDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/ShiftDateDAO.java)
+
+- Changed all variables from Integer to int where appropriate
+- Replaced debug `System.out` calls with `Logger` calls
+- Formatted to match Google Java Style
+
+[**SkillDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/SkillDAO.java)
+
+- Formatted to match Google Java Style
+
+[**WorkcenterDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/WorkcenterDAO.java)
+
+- Formatted to match Google Java Style
+
+[**DBBuild.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/util/DBBuild.java)
+
+- Replaced debug `System.out` calls with `Logger` calls
+- Formatted to match Google Java Style
+
+[**DBConnectionPool.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/util/DBConnectionPool.java)
+
+- Replaced debug `System.out` calls with `Logger` calls
+- Formatted to match Google Java Style
+
+[**AddPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/AddPersonStage.java)
+
+- Grouped imports by root package
+- Formatted to match Google Java Style
+
+[**EditPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/EditPersonStage.java)
+
+- Grouped imports by root package
+- Removed instantiation of classes with only `static` methods
+- Formatted to match Google Java Style
+
+[**MainStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/MainStage.java)
+
+- Fixed Javadoc and formatting for `buildShiftViewTable()`
+- Replaced debug `System.out` calls with `Logger` calls
+- Grouped and ordered methods into logical groupings
+- Improved the Javadoc for `createColumn()`
+- Formatted to match Google Java Style
+
+[**AlertBox.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/modal/AlertBox.java)
+
+- Formatted to match Google Java Style
+
+[**AnswerBox.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/modal/AnswerBox.java)
+
+- Made all members `static`
+- Formatted to match Google Java Style
+- Replaced debug `System.out` calls with `Logger` calls
+
+[**ConfirmBox.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/modal/ConfirmBox.java)
+
+- Formatted to match Google Java Style
+
+### 2016-03-23
+
+[**ObjectDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/ObjectDAO.java)
+
+- Grouped imports by root package
+- Formatted to match Google Java Style (up to 4.5.1)
+- Renamed `getNextObjectID()` to `getNextObjectId()`
+
+[**MainStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/MainStage.java)
+
+- Removed unused imports and grouped remaining imports by root package
+- Removed the private class `PersonRow`
+- Formatted to match Google Java Style (up to 3.4.1)
+
 ### 2016-03-13
 
 [**PersonDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java)

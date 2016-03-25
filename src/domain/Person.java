@@ -14,6 +14,8 @@
  * 
  * 2016-03-08 : Added constructor that takes int values for rank, workcenter and skill level (IDs)
  * 2016-03-08 : Added setRankID() and setSkillID() to work in parallel with setWorkcenterID()
+ * 
+ * 2016-03-24 : Changed all variables from Integer to int where appropriate
  */
 
 /**
@@ -35,10 +37,10 @@ public class Person implements java.io.Serializable {
     private String skill;
     
     
-    Integer rank_id;
-    Integer workcenter_id;
-    Integer shift_id;
-    Integer skill_id;
+    int rank_id;
+    int workcenter_id;
+    int shift_id;
+    int skill_id;
 
     //  For testing purposes:
     public Person (String fn, String ln, String rk, String sk) {
