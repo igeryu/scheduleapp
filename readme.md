@@ -15,6 +15,24 @@ Functionality will be added to allow for the following features (not all inclusi
 
 ## Change Log
 
+### 2016-03-26
+
+[**DBBuild.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/util/DBBuild.java)
+
+- Added `buildPersonEventTable()` call to `buildDatabase()`
+- Adjusted `logger` messages and changed from `INFO` to `FINE`
+- Added `buildPersonEventTypeTable()` method
+- Removed the `NOT NULL` identifier from all foreign key declarations
+
+[**PersonEventDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonEventDAO.java)
+
+- Removed unused imports and grouped remaining imports by root package
+- Included the event type identifier in the `StringProperties` returned by `getWeek()`
+
+[**PersonEventTypeDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonEventTypeDAO.java)
+
+- Created file from `ShiftDAO` template
+
 ### 2016-03-25
 
 [**PersonDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java)

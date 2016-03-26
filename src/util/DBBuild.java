@@ -5,16 +5,28 @@
  * 
  * 2016-03-04 : Created file
  * 
- * 2016-03-05 : Got testDatabase() working, which will call buildDatabase() if the database is not built.
+ * 2016-03-05 : Got `testDatabase()` working, which will call `buildDatabase()` if the database is not built.
  * 
- * 2016-03-08 : Fixed buildObjectIdsTable() so that PERSON and SHIFT_DATE start with an ID of 1
+ * 2016-03-08 : Fixed `buildObjectIdsTable()` so that `PERSON` and `SHIFT_DATE` start with an `ID` of `1`
  * 
- * 2016-03-24 : Replaced debug System.out calls with Logger calls
+ * 2016-03-24 : Replaced debug `System.out` calls with `Logger` calls
  * 2016-03-24 : Formatted to match Google Java Style
  * 
- * 2016-03-25 : Added EVENT_DESCRIPTION_SIZE
- * 2016-03-25 : Added buildPersonEventTable() method
- * 2016-03-25 : Modified buildObjectIdsTable() to include the PERSON_EVENT table
+ * 2016-03-25 : Added `EVENT_DESCRIPTION_SIZE`
+ * 2016-03-25 : Added `buildPersonEventTable()` method
+ * 2016-03-25 : Modified `buildObjectIdsTable()` to include the `PERSON_EVENT` table
+ * 
+ * 2016-03-26 : Added `buildPersonEventTable()` call to `buildDatabase()`
+ * 2016-03-26 : Adjusted `logger` messages and changed from `INFO` to `FINE`
+ * 2016-03-26 : Added `buildPersonEventTypeTable()` method
+ * 2016-03-26 : Removed the `NOT NULL` identifier from all foreign key declarations
+ * 
+ * To-Do:
+ * TODO: Make ranks added by buildRankTable() user selected
+ * TODO: Make shifts added by buildShiftTable() user selected
+ * TODO: Make workcenters added by buildWorkcenterTable() user selected
+ * TODO: Make skill added by buildSkillTable() user selected
+ * TODO: Make event types added by buildPersonEventTypeTable() user selected
  */
 package util;
 
@@ -35,6 +47,7 @@ public class DBBuild {
 
   private static final int PERSON_NAME_SIZE = 20;
   private static final int EVENT_DESCRIPTION_SIZE = 20;
+  private static final int EVENT_TYPE_SIZE = 15;
   private static final int CLASS_NAME_SIZE = 15;
   private static final int RANK_NAME_SIZE = 5;
   private static final int SHIFT_NAME_SIZE = 5;
@@ -45,70 +58,84 @@ public class DBBuild {
     Connection conn = DBConnectionPool.getPoolConnection();
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Building schemas...!");
+    logger.fine("Building schemas...!");
 
     if (!buildSchemas(conn)) {
       return false;
     }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Building objectids...!");
+    logger.fine("Building OBJECTIDS table...!");
 
     if (!buildObjectIdsTable(conn)) {
       return false;
     }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Building rank...!");
+    logger.fine("Building RANK table...!");
 
     if (!buildRankTable(conn)) {
       return false;
     }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Building shift...!");
+    logger.fine("Building SHIFT table...!");
 
     if (!buildShiftTable(conn)) {
       return false;
     }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Building skill...!");
+    logger.fine("Building SKILL table...!");
 
     if (!buildSkillTable(conn)) {
       return false;
     }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Building workcenter...!");
+    logger.fine("Building WORKCENTER table...!");
 
     if (!buildWorkcenterTable(conn)) {
       return false;
     }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Building person...!");
+    logger.fine("Building PERSON table...!");
 
     if (!buildPersonTable(conn)) {
       return false;
     }
+    
+    //  DEBUG:
+    logger.fine("Building PERSON_EVENT_TYPE table...!");
+
+    if (!buildPersonEventTypeTable(conn)) {
+      return false;
+    }
+    
+     //  DEBUG:
+    logger.fine("Building PERSON_EVENT table...!");
+
+    if (!buildPersonEventTable(conn)) {
+      return false;
+    }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Building shift_date...!");
+    logger.fine("Building SHIFT_DATE table...!");
 
     if (!buildShiftDateTable(conn)) {
       return false;
     }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Assigning schemas...!");
+    logger.fine("Assigning schemas...!");
 
     if (!assignTablesToSchemas(conn)) {
       return false;
     }
 
     //  DEBUG:
-    logger.info("[DBBuild.buildDatabase()] Success!");
+    logger.fine("Success!");
 
     return true;
   }
@@ -156,10 +183,10 @@ public class DBBuild {
                                        + "id INTEGER NOT NULL UNIQUE, "
                                        + "first_name    VARCHAR(%d) NOT NULL, "
                                        + "last_name     VARCHAR(%d) NOT NULL, "
-                                       + "rank_id       INTEGER NOT NULL, "
-                                       + "workcenter_id INTEGER NOT NULL, "
-                                       + "shift_id      INTEGER NOT NULL, "
-                                       + "skill_id      INTEGER NOT NULL)",
+                                       + "rank_id       INTEGER, "
+                                       + "workcenter_id INTEGER, "
+                                       + "shift_id      INTEGER, "
+                                       + "skill_id      INTEGER)",
                                        PERSON_NAME_SIZE,
                                        PERSON_NAME_SIZE);
 
@@ -205,26 +232,66 @@ public class DBBuild {
     return false;
   }
   
+  private static boolean buildPersonEventTypeTable(Connection conn) {
+    String buildString = String.format("CREATE TABLE owner.person_event_type ("
+                                       + "id INTEGER NOT NULL UNIQUE, "
+                                       + "name VARCHAR(%d) NOT NULL UNIQUE)",
+                                       EVENT_TYPE_SIZE);
+    
+    String insertString = "INSERT INTO person_event_type VALUES "
+                          + "(1, 'ALS'),   (2, 'Appointment'),   (3, 'CTO'), "
+                          + "(4, 'Leave'),  (5, 'PT'),  (6, 'PT Test'), "
+                          + "(7, 'TDY')";
+    try {
+      PreparedStatement buildStmt = conn.prepareStatement(buildString);
+      buildStmt.execute();
+      buildStmt.close();
+
+      PreparedStatement insertStmt = conn.prepareStatement(insertString);
+      insertStmt.execute();
+      insertStmt.close();
+      
+      return true;
+    } catch (SQLException sql) {
+      if (sql.getMessage().contains("already exists in Schema")) {
+        return true;
+      }
+      logger.log(Level.WARNING, "SQL Exception: " + sql.getMessage());
+    }
+    return false;
+  }
+  
   private static boolean buildPersonEventTable(Connection conn) {
     String buildString =
         String.format("CREATE TABLE owner.person_event ("
-                      + "id            INTEGER NOT NULL UNIQUE, "
-                      + "start_date    DATE NOT NULL, "
-                      + "end_date      DATE NOT NULL, "
-                      + "description   VARCHAR(%D) NOT NULL, "
-                      + "person_id     INTEGER NOT NULL)",
+                      + "id                   INTEGER NOT NULL UNIQUE, "
+                      + "start_date           DATE NOT NULL, "
+                      + "start_time           TIME NOT NULL, "
+                      + "end_date             DATE NOT NULL, "
+                      + "end_time             TIME NOT NULL, "
+                      + "description          VARCHAR(%D) NOT NULL, "
+                      + "person_event_type_id INTEGER, "
+                      + "person_id            INTEGER)",
                       EVENT_DESCRIPTION_SIZE);
 
-    String alterString = "ALTER TABLE owner.person_event "
-                                 + "ADD CONSTRAINT person_event_fk_personid "
-                                 + "FOREIGN KEY (person_id) "
-                                 + "REFERENCES person(id)";
+    ArrayList<String> alterStrings = new ArrayList<>();
+    String alterStringTemplate = "ALTER TABLE owner.person_event "
+                                 + "ADD CONSTRAINT personevent_fk_%sid "
+                                 + "FOREIGN KEY (%s_id) "
+                                 + "REFERENCES %s(id)";
 
+    alterStrings.add(String.format(alterStringTemplate,
+                                   "person_event_type",
+                                   "person_event_type",
+                                   "person_event_type"));
+    alterStrings.add(String.format(alterStringTemplate,
+                                   "person", "person", "person"));
+    
     try {
       String checkString =
           "SELECT tablename "
           + "FROM sys.systables "
-          + "WHERE tablename = 'person_event'";
+          + "WHERE tablename = 'person_event_type'";
       
       PreparedStatement checkStatement = conn.prepareStatement(checkString);
 
@@ -232,10 +299,12 @@ public class DBBuild {
         PreparedStatement buildStmt = conn.prepareStatement(buildString);
         buildStmt.execute();
         buildStmt.close();
-        
-        PreparedStatement alterStmt = conn.prepareStatement(alterString);
-        alterStmt.execute();
-        alterStmt.close();
+
+        for (String alterString : alterStrings) {
+          PreparedStatement insertStmt = conn.prepareStatement(alterString);
+          insertStmt.execute();
+          insertStmt.close();
+        }
       }
       checkStatement.close();
 
@@ -343,13 +412,13 @@ public class DBBuild {
   private static boolean buildShiftDateTable(Connection conn) {
     String buildString = "CREATE TABLE owner.shift_date ("
                          + "id INTEGER NOT NULL UNIQUE, "
-                         + "person_id   INTEGER NOT NULL, "
+                         + "person_id   INTEGER, "
                          + "change_date DATE    NOT NULL, "
-                         + "shift_id    INTEGER NOT NULL)";
+                         + "shift_id    INTEGER)";
 
     ArrayList<String> alterStrings = new ArrayList<>();
     String alterStringTemplate = "ALTER TABLE owner.shift_date "
-                                 + "ADD CONSTRAINT person_fk_%sid "
+                                 + "ADD CONSTRAINT shiftdate_fk_%sid "
                                  + "FOREIGN KEY (%s_id) "
                                  + "REFERENCES %s(id)";
 
