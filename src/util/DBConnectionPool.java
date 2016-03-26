@@ -90,7 +90,7 @@ public class DBConnectionPool extends Object {
     Connection conn;
     try {
       conn = DriverManager.getConnection(connectionURL, "Owner", "password");
-      logger.info("Connection successful!");
+      logger.fine("Connection successful!");
       return conn;
     } catch (SQLException ex) {
       String errorMessage = ex.getMessage();

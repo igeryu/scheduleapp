@@ -149,7 +149,7 @@ public class ShiftDateDAO {
 
     return shifts;
   }  // end getWeek(Person, LocalDate)
-
+  
   public ArrayList<String> getWeek(Person person, LocalDate firstDay) {
     int person_id = person.getObjectID();
     return getWeek(person_id, firstDay);

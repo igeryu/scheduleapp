@@ -1,4 +1,6 @@
 
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 import window.AddPersonStage;
 import window.EditPersonStage;
 import java.util.logging.Logger;
@@ -32,6 +34,8 @@ public class TestDriver extends Application {
 
   @Override
   public void start(Stage primaryStage) throws Exception {
+//    LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.WARNING); 
+    
     //  DEBUG:
     logger.info("[TestDriver.start()] Testing database...");
 

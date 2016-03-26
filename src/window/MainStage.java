@@ -24,11 +24,16 @@
  * 2016-03-24 : Grouped and ordered methods into logical groupings
  * 2016-03-24 : Improved the Javadoc for createColumn()
  * 2016-03-24 : Formatted to match Google Java Style
+ * 
+ * 2016-03-25 : Added createEventColumn() method
+ * 2016-03-25 : Added columnOffset to populateShiftViewTable() method
+ * 2016-03-25 : Updated populateShiftViewTable() to handle both shift view and event view
  */
 package window;
 
 import domain.Person;
 import domain.PersonDAO;
+import domain.PersonEventDAO;
 import domain.ShiftDAO;
 import domain.ShiftDateDAO;
 import domain.WorkcenterDAO;
@@ -112,6 +117,7 @@ public class MainStage {
     column.setCellValueFactory((
         CellDataFeatures<ObservableList<StringProperty>, String>
             cellDataFeatures) -> cellDataFeatures.getValue().get(columnIndex));
+    
     column.setCellFactory(thisColumn -> {
       return new TableCell<ObservableList<StringProperty>, String>() {
         @Override
@@ -135,6 +141,66 @@ public class MainStage {
 
               case "Swing":
                 this.setId("swing_style");
+                break;
+            }
+          }
+        }
+      };
+    });
+    return column;
+  }
+  
+  private TableColumn<ObservableList<ObservableList<StringProperty>>, String> createEventColumn(
+          final int columnIndex, String columnTitle) {
+    TableColumn<ObservableList<ObservableList<StringProperty>>, String> column
+        = new TableColumn<>();
+    String title = columnTitle;
+
+    column.setText(title);
+    column.setCellValueFactory((
+        CellDataFeatures<ObservableList<ObservableList<StringProperty>>,
+            String> cellDataFeatures) -> {
+      
+      ObservableList<StringProperty> list
+          = cellDataFeatures.getValue().get(columnIndex);
+          String description = "";
+          if (list != null) {
+            for (StringProperty item : list) {
+//              logger.info("item = " + item.getValue());
+              description += item.getValue() + "\n";
+            }
+          }
+          ObservableValue<String> retval = new SimpleStringProperty(description);
+          return retval;
+//          return (ObservableValue<String>)(retval);
+        });
+
+    column.setCellFactory(thisColumn -> {
+      return new TableCell<ObservableList<ObservableList<StringProperty>>, String>() {
+        @Override
+        protected void updateItem(String item, boolean empty) {
+          super.updateItem(item, empty);
+
+          if (item == null || empty) {
+            setText(null);
+            setStyle("");
+          } else {
+            setText(item);
+
+            switch (item) {
+              case "Mid":
+                this.setId("mid_style");
+                break;
+
+              case "Day":
+                this.setId("day_style");
+                break;
+
+              case "Swing":
+                this.setId("swing_style");
+                break;
+
+              default:
                 break;
             }
           }
@@ -307,6 +373,8 @@ public class MainStage {
 
   // ============================   Output  =============================
   private void populateShiftViewTable() {
+    logger.fine("Entering MainStage.populateShiftViewTable()");
+    
     ArrayList<Person> people;
     //  TODO: Add date parameter and use that for the following value:
     LocalDate today = LocalDate.now();
@@ -315,49 +383,147 @@ public class MainStage {
     if (columns != null) {
       columns.clear();
     }
-
-    // =============================  Columns  ============================
-    //      =========================  Name  =========================
-    outputTable.getColumns().add(createColumn(0, "Name"));
-
-    //      ========================  Shifts  ========================
-    LocalDate currentDate;
-    String dateString;
-    for (int x = 0; x < 7; x++) {
-      currentDate = today.plusDays(x);
-      dateString = currentDate.format(dateFormatter);
-      outputTable.getColumns().add(createColumn(x + 1, dateString));
-    }
-
+    int columnOffset = 1;  // this is the index of the first date column
+    
     // ===========================  Build  List  ==========================
-    ObservableList<ObservableList<StringProperty>> data =
-            FXCollections.observableArrayList();
     PersonDAO personDao = new PersonDAO();
-    ShiftDateDAO shiftDateDao = new ShiftDateDAO();
+//    ShiftDateDAO shiftDateDao = new ShiftDateDAO();
     people = personDao.getPeopleArrayListByShift(shift, workcenter);
 
     //  DEBUG:
-    logger.info("\n[MainStage.rebuildTable()] people = " + people);
+    logger.info("[MainStage.rebuildTable()] people = " + people + "\n");
     
-    for (Person p : people) {
-      ArrayList<String> shifts = shiftDateDao.getWeek(p, LocalDate.now());
-
-      //  DEBUG:
-      logger.info("\n[MainStage.rebuildTable()] shifts = " + shifts);
+    //  All-Shifts View:
+    if (shift < 1) {
       
-      ObservableList<StringProperty> row = FXCollections.observableArrayList();
-      for (String s : shifts) {
-        row.add(new SimpleStringProperty(s));
+    // =============================  Columns  ============================
+    //      =========================  Name  =========================
+    outputTable.getColumns().add(createColumn(0, "Name"));
+    
+    //      ======================  Workcenter  ======================
+    //  If 'Shift' is set to 'All', add a 'Workcenter' column
+    if (workcenter < 1) {
+      outputTable.getColumns().add(createColumn(1, "Workcenter"));
+      columnOffset++;
+    }
+    
+      ObservableList<ObservableList<StringProperty>> data =
+            FXCollections.observableArrayList();
+
+      //      ========================  Shifts  ========================
+      LocalDate currentDate;
+      String dateString;
+      for (int x = 0; x < 7; x++) {
+        currentDate = today.plusDays(x);
+        dateString = currentDate.format(dateFormatter);
+        outputTable.getColumns()
+            .add(createColumn(x + columnOffset, dateString));
       }
 
-      String personName = p.getRank()      + " "
-                        + p.getFirstName() + " "
-                        + p.getLastName();
-      row.add(0, new SimpleStringProperty(personName));
-      data.add(row);
+      //      ========================  People  ========================
+      for (Person p : people) {
+        //  TODO: Change the current ShiftDateDAO.getWeek() to getWeekShifts(), and then add getWeekEvents()
+        ArrayList<String> shifts =
+            new ShiftDateDAO().getWeek(p, LocalDate.now());
+
+        //  DEBUG:
+        logger.info("[MainStage.rebuildTable()] shifts = " + shifts);
+
+        ObservableList<StringProperty> row =
+            FXCollections.observableArrayList();
+        for (String s : shifts) {
+          row.add(new SimpleStringProperty(s));
+        }
+
+        String personName = p.getRank() + " "
+            + p.getFirstName() + " "
+            + p.getLastName();
+        row.add(0, new SimpleStringProperty(personName));
+
+        //  If 'Workcenter' is set to 'All', add a 'Workcenter' column
+        if (workcenter < 1) {
+          int workcenterId = p.getWorkcenterID();
+          String workcenterName =
+              new WorkcenterDAO().getMap().get(workcenterId);
+          row.add(1, new SimpleStringProperty(workcenterName));
+        }
+
+        data.add(row);
+      }
+      outputTable.setItems(data);
+      
+      
+    } else {  //  Individual Shift View:
+      
+    // =============================  Columns  ============================
+    //      =========================  Name  =========================
+    outputTable.getColumns().add(createEventColumn(0, "Name"));
+    
+    //      ======================  Workcenter  ======================
+    //  If 'Shift' is set to 'All', add a 'Workcenter' column
+    if (workcenter < 1) {
+      outputTable.getColumns().add(createEventColumn(1, "Workcenter"));
+      columnOffset++;
+    }
+      
+      ObservableList<ObservableList<ObservableList<StringProperty>>> data =
+            FXCollections.observableArrayList();
+      
+      //      ========================  Events  ========================
+      LocalDate currentDate;
+      String dateString;
+      for (int x = 0; x < 7; x++) {
+        currentDate = today.plusDays(x);
+        dateString = currentDate.format(dateFormatter);
+        outputTable.getColumns()
+            .add(createEventColumn(x + columnOffset, dateString));
+      }
+      
+      for (Person p : people) {
+        //  TODO: Change the current ShiftDateDAO.getWeek() to getWeekShifts(), and then add getWeekEvents()
+        ObservableList<ObservableList<StringProperty>> events =
+            new PersonEventDAO().getWeekEvents(p, LocalDate.now());
+        
+        //  DEBUG:
+        logger.info("[MainStage.rebuildTable()] events = " + events);
+
+        ObservableList<ObservableList<StringProperty>> row = FXCollections.observableArrayList();
+        
+        for (ObservableList<StringProperty> eventArrayList : events) {
+          row.add(eventArrayList);
+        }
+
+        String personName = p.getRank() + " "
+            + p.getFirstName() + " "
+            + p.getLastName();
+        SimpleStringProperty personNameProperty =
+            new SimpleStringProperty(personName);
+        
+        ObservableList<StringProperty> personNameList =
+            FXCollections.observableArrayList(personNameProperty);
+        
+        row.add(0, personNameList);
+
+        // If 'Shift' is set to 'All', add a 'Workcenter' column
+        if (workcenter < 1) {
+          int workcenterId = p.getWorkcenterID();
+          String workcenterName = new WorkcenterDAO().getMap().get(workcenterId);
+          
+          SimpleStringProperty workcenterNameProperty =
+            new SimpleStringProperty(workcenterName);
+          
+          ObservableList<StringProperty> workcenterNameList =
+            FXCollections.observableArrayList(workcenterNameProperty);
+          logger.info("workcenterNameList = " + workcenterNameList);
+          row.add(1, workcenterNameList);
+        } 
+//
+        data.add(row);
+      }
+      outputTable.setItems(data);
     }
 
-    outputTable.setItems(data);
+    logger.fine("Exiting MainStage.populateShiftViewTable()");
   }
 
   /**
@@ -389,9 +555,9 @@ public class MainStage {
                 height = scheduleWindow.getHeight();
 
                 //  DEBUG:
-                logger.info("\n[MainStage.display()] scheduleWindow's width: "
+                logger.fine("[MainStage.display()] scheduleWindow's width: "
                     + scheduleWindow.getWidth());
-                logger.info("\n[MainStage.display()] scheduleWindow's height: "
+                logger.fine("[MainStage.display()] scheduleWindow's height: "
                     + scheduleWindow.getHeight());
 
                 // ======================   Manage Tab  =======================

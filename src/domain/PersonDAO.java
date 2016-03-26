@@ -269,81 +269,88 @@ public class PersonDAO {
     public ArrayList<Person> getPeopleArrayListByShift(int shift,
                                                        int workcenter,
                                                        LocalDate date) {
+      logger.info("Entering PersonDAO.getPeopleArrayListByShift\n"
+                + "  shift      = " + shift + "\n"
+                + "  workcenter = " + workcenter + "\n"
+                + "  date       = " + date + "\n");
+      PreparedStatement request = null;
+      Connection conn = null;
+      if (date == null) date = LocalDate.now();
+      
+      ObservableList<Person> personData = null;
+      ArrayList<Person> personList = new ArrayList<>();
+      
+      try {
+          conn = DBConnectionPool.getPoolConnection();
+          request = conn.prepareStatement(GET_BY_SHIFT_STMT);
+          
+          if (workcenter >= 1)
+              request.setInt(1, workcenter);
+          else
+              request.setString(1, "%");
 
-        PreparedStatement request = null;
-        Connection conn = null;
-        if (date == null) date = LocalDate.now();
-        
-        ObservableList<Person> personData = null;
-        ArrayList<Person> personList = new ArrayList<>();
-        
-        try {
-            conn = DBConnectionPool.getPoolConnection();
-            request = conn.prepareStatement(GET_BY_SHIFT_STMT);
-            
-            if (workcenter >= 1)
-                request.setInt(1, workcenter);
-            else
-                request.setString(1, "%");
+          ResultSet rset = request.executeQuery();
+          ShiftDateDAO shiftDateDao = new ShiftDateDAO();
+          
+          while (rset.next()) {
+              int id = rset.getInt("id");
+              int shift_id = shiftDateDao.getCurrentShift(id, date);
+              
+              //  DEBUG:
+              logger.fine("shift_id = " + shift_id + "\n");
+              
+              if (shift >= 1 && shift_id != shift) {
+                  continue;
+              }
+              
+              String firstName = rset.getString("first_name");
+              String lastName = rset.getString("last_name");
+              int rank_id = rset.getInt("rank_id");
+              int skill_id = rset.getInt("skill_id");
+              int workcenter_id = rset.getInt("workcenter_id");
+              
+              logger.log(Level.FINE,
+                  String.format("PersonDAO_New.getPeopleByShift()\n"
+                              + "rank: %s\nskill: %s", rank_id, skill_id));
 
-            ResultSet rset = request.executeQuery();
-            ShiftDateDAO shiftDateDao = new ShiftDateDAO();
-            
-            while (rset.next()) {
-                int id = rset.getInt("id");
-                int shift_id = shiftDateDao.getCurrentShift(id, date);
-                
-                if (shift >= 1 && shift_id != shift)
-                    continue;
-                
-                String firstName = rset.getString("first_name");
-                String lastName = rset.getString("last_name");
-                int rank_id = rset.getInt("rank_id");
-                int skill_id = rset.getInt("skill_id");
-                int workcenter_id = rset.getInt("workcenter_id");
-                
-                logger.log(Level.FINE,
-                    String.format("PersonDAO_New.getPeopleByShift()\n"
-                                + "rank: %s\nskill: %s", rank_id, skill_id));
+              //  TODO:  Fix this:
+              Person person = new Person(firstName, lastName,
+                                         rank_id,   workcenter_id, skill_id);
+              person.setObjectID(id);
+              
+              logger.log(Level.FINE,
+                  String.format("PersonDAO.getPeopleByShift()\n"
+                              + "person.rank: %s\n\"person.skill: %s",
+                              person.getRank(), person.getSkill()));
 
-                //  TODO:  Fix this:
-                Person person = new Person(firstName, lastName,
-                                           rank_id,   workcenter_id, skill_id);
-                person.setObjectID(id);
-                
-                logger.log(Level.FINE,
-                    String.format("PersonDAO_New.getPeopleByShift()\n"
-                                + "person.rank: %s\n\"person.skill: %s",
-                                person.getRank(), person.getSkill()));
+              personList.add(person);
+          }
+          
+          logger.log(Level.FINE, String.format("Test Point A"));
+          
+          return personList;
 
-                personList.add(person);
-            }
-            
-            logger.log(Level.FINE, String.format("Test Point A"));
-            
-            return personList;
-
-        } catch (SQLException se) {
-            throw new RuntimeException(
-                    "[PersonDAO_New.getPeopleByShift()] A database error occurred. " + se.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("Exception: " + e.getMessage());
-        } finally {
-            if (request != null) {
-                try {
-                    request.close();
-                } catch (SQLException se) {
-                    se.printStackTrace(System.err);
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                }
-            }
-        }
+      } catch (SQLException se) {
+          throw new RuntimeException(
+                  "[PersonDAO_New.getPeopleByShift()] A database error occurred. " + se.getMessage());
+      } catch (Exception e) {
+          throw new RuntimeException("Exception: " + e.getMessage());
+      } finally {
+          if (request != null) {
+              try {
+                  request.close();
+              } catch (SQLException se) {
+                  se.printStackTrace(System.err);
+              }
+          }
+          if (conn != null) {
+              try {
+                  conn.close();
+              } catch (Exception e) {
+                  e.printStackTrace(System.err);
+              }
+          }
+      }
 
 //        return null;
     }

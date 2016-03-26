@@ -11,6 +11,10 @@
  * 
  * 2016-03-24 : Replaced debug System.out calls with Logger calls
  * 2016-03-24 : Formatted to match Google Java Style
+ * 
+ * 2016-03-25 : Added EVENT_DESCRIPTION_SIZE
+ * 2016-03-25 : Added buildPersonEventTable() method
+ * 2016-03-25 : Modified buildObjectIdsTable() to include the PERSON_EVENT table
  */
 package util;
 
@@ -30,6 +34,7 @@ import java.util.logging.Level;
 public class DBBuild {
 
   private static final int PERSON_NAME_SIZE = 20;
+  private static final int EVENT_DESCRIPTION_SIZE = 20;
   private static final int CLASS_NAME_SIZE = 15;
   private static final int RANK_NAME_SIZE = 5;
   private static final int SHIFT_NAME_SIZE = 5;
@@ -199,14 +204,61 @@ public class DBBuild {
     }
     return false;
   }
+  
+  private static boolean buildPersonEventTable(Connection conn) {
+    String buildString =
+        String.format("CREATE TABLE owner.person_event ("
+                      + "id            INTEGER NOT NULL UNIQUE, "
+                      + "start_date    DATE NOT NULL, "
+                      + "end_date      DATE NOT NULL, "
+                      + "description   VARCHAR(%D) NOT NULL, "
+                      + "person_id     INTEGER NOT NULL)",
+                      EVENT_DESCRIPTION_SIZE);
+
+    String alterString = "ALTER TABLE owner.person_event "
+                                 + "ADD CONSTRAINT person_event_fk_personid "
+                                 + "FOREIGN KEY (person_id) "
+                                 + "REFERENCES person(id)";
+
+    try {
+      String checkString =
+          "SELECT tablename "
+          + "FROM sys.systables "
+          + "WHERE tablename = 'person_event'";
+      
+      PreparedStatement checkStatement = conn.prepareStatement(checkString);
+
+      if (!checkStatement.executeQuery().next()) {
+        PreparedStatement buildStmt = conn.prepareStatement(buildString);
+        buildStmt.execute();
+        buildStmt.close();
+        
+        PreparedStatement alterStmt = conn.prepareStatement(alterString);
+        alterStmt.execute();
+        alterStmt.close();
+      }
+      checkStatement.close();
+
+      return true;
+    } catch (SQLException sql) {
+      if (sql.getMessage().contains("already exists in Schema")) {
+        return true;
+      }
+      logger.log(Level.SEVERE, "SQL Exception: " + sql.getMessage());
+    }
+    return false;
+  }
 
   private static boolean buildObjectIdsTable(Connection conn) {
-    String buildString = String.format("CREATE TABLE owner.objectids ("
-        + "classname VARCHAR(%d) NOT NULL UNIQUE, "
-        + "idnumber INTEGER)",
-        CLASS_NAME_SIZE);
+    String buildString =
+        String.format("CREATE TABLE owner.objectids ("
+                      + "classname VARCHAR(%d) NOT NULL UNIQUE, "
+                      + "idnumber INTEGER)",
+                      CLASS_NAME_SIZE);
+    
+    //  TODO:  Make this not hard-coded:
     String insertString = "INSERT INTO objectids VALUES "
-        + "('Person', 1), ('Shift_Date', 1)";
+        + "('Person', 1), ('Shift_Date', 1), ('Person_Event', 1)";
     try {
       PreparedStatement buildStmt = conn.prepareStatement(buildString);
       buildStmt.execute();
@@ -292,7 +344,7 @@ public class DBBuild {
     String buildString = "CREATE TABLE owner.shift_date ("
                          + "id INTEGER NOT NULL UNIQUE, "
                          + "person_id   INTEGER NOT NULL, "
-                         + "change_date DATE        NOT NULL, "
+                         + "change_date DATE    NOT NULL, "
                          + "shift_id    INTEGER NOT NULL)";
 
     ArrayList<String> alterStrings = new ArrayList<>();

@@ -9,9 +9,9 @@ Functionality will be added to allow for the following features (not all inclusi
 - Check for conflicts between leave/appointments/events
 - Verify personnel and events are scheduled out for the next 30/60/90/etc. days
 
-![Shift View - All](https://github.com/igeryu/scheduleapp/blob/develop/Screen%20Captures/2016-03-13_18-12%20Shift%20View%20A.png)
+![Shift View - All](https://github.com/igeryu/scheduleapp/blob/develop/Screen%20Captures/2016-03-25_19-27%20Shift%20View%20A.png)
 
-![Shift View - Filtered](https://github.com/igeryu/scheduleapp/blob/develop/Screen%20Captures/2016-03-13_18-12%20Shift%20View%20B.png)
+![Shift View - Filtered](https://github.com/igeryu/scheduleapp/blob/develop/Screen%20Captures/2016-03-25_19-27%20Shift%20View%20B.png)
 
 ## Change Log
 
@@ -21,6 +21,23 @@ Functionality will be added to allow for the following features (not all inclusi
 
 - Formatted to match Google Java Style
 - Replaced debug `System.out` calls with `Logger` calls
+
+[**PersonEventDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonEventDAO.java)
+
+- Created from `ShiftDateDAO` template
+- Got both `getWeekEvents()` methods and the `getEvent()` method working
+
+[**DBBuild.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/util/DBBuild.java)
+
+- Added `EVENT_DESCRIPTION_SIZE`
+- Added `buildPersonEventTable()` method
+- Modified `buildObjectIdsTable()` to include the `PERSON_EVENT` table
+
+[**MainStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/MainStage.java)
+
+- Added createEventColumn() method
+- Added columnOffset to populateShiftViewTable() method
+- Updated populateShiftViewTable() to handle both shift view and event view
 
 ### 2016-03-24
 
