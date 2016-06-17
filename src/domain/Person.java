@@ -125,9 +125,10 @@ public class Person implements java.io.Serializable {
     }
 
     public String toString() {
-        return String.format("(ID: %s) %s, %s: (R: %s) (W: %s) (S: %s)",
+        return String.format("(ID: %s) %s, %s: (R: %s) (W: %s) (Sh: %s) (Sk: %s)",
                 objectID, firstName, lastName,
-                rank_id, workcenter_id, shift_id);
+                rank_id, workcenter_id, shift_id,
+                skill_id);
     }
 
     /**

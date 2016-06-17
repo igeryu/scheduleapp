@@ -28,12 +28,17 @@
  * 2016-03-25 : Added createEventColumn() method
  * 2016-03-25 : Added columnOffset to populateShiftViewTable() method
  * 2016-03-25 : Updated populateShiftViewTable() to handle both shift view and event view
+ * 
+ * 2016-06-17 : Changed `display()` to set `logger` to `INFO` level
+ * 2016-06-17 : The `editPersonButton` now sends the proper person to be found
  */
 package window;
 
+import com.sun.javafx.collections.ObservableListWrapper;
 import domain.Person;
 import domain.PersonDAO;
 import domain.PersonEventDAO;
+import domain.RankDAO;
 import domain.ShiftDAO;
 import domain.ShiftDateDAO;
 import domain.WorkcenterDAO;
@@ -41,6 +46,8 @@ import domain.WorkcenterDAO;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
@@ -61,14 +68,17 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import window.modal.AlertBox;
 
 /**
  *
@@ -123,25 +133,47 @@ public class MainStage {
         @Override
         protected void updateItem(String item, boolean empty) {
           super.updateItem(item, empty);
+          
 
           if (item == null || empty) {
             setText(null);
             setStyle("");
           } else {
-            setText(item + " Shift");
+
+//            Text text = new Text(item.toString());
+            
 
             switch (item) {
               case "Mid":
-                this.setId("mid_style");
+//                this.setId("mid_style");
+                this.getStyleClass().add("midshift");
+                setText(item + " Shift");
+//                text = new Text(text.getText() + " Shift");
+//                text.setStyle("-fx-fill : -fx-text-background-color;");
+//                setGraphic(text);
                 break;
 
               case "Day":
-                this.setId("day_style");
+//                this.setId("day_style");
+                this.getStyleClass().add("dayshift");
+                setText(item + " Shift");
+//                text = new Text(text.getText() + " Shift");
+//                setGraphic(text);
                 break;
 
               case "Swing":
-                this.setId("swing_style");
+//                this.setId("swing_style");
+                this.getStyleClass().add("swingshift");
+                setText(item + " Shift");
+//                text = new Text(text.getText() + " Shift");
+//                setGraphic(text);
                 break;
+                
+              default:
+//                this.setId("no_style");
+                this.getStyleClass().add("noshift");
+                setText(item);
+//                setGraphic(text);
             }
           }
         }
@@ -215,6 +247,7 @@ public class MainStage {
    * Displays the main stage(window).</p>
    */
   public void display() {
+    logger.setLevel(Level.INFO);
     window = new Stage();
     window.setTitle("Schedule Application");
     BorderPane rootLayout = new BorderPane();
@@ -280,7 +313,28 @@ public class MainStage {
     addPersonButton.setOnAction(e -> AddPersonStage.display());
 
     Button editPersonButton = new Button("Edit Person");
-    editPersonButton.setOnAction(e -> EditPersonStage.display(null));
+    editPersonButton.setOnAction(e -> {
+      logger.info("'Edit Person' button clicked.");
+      
+      ObservableList selection = outputTable.getSelectionModel().getSelectedItems();
+      if (selection.size() != 1) {
+        AlertBox.display("Edit Error", "More than one person selected.");
+      }
+      
+      String nameRankString = ((StringProperty) ((ObservableListWrapper)selection.get(0)).get(0)).getValue();
+      String delim = "[ ]+";
+      String[] nameRankTokens = nameRankString.split(delim);
+      int rankId = new RankDAO().getMapReversed().get(nameRankTokens[0]);
+      String firstName = nameRankTokens[1];
+      String lastName = nameRankTokens[2];
+      Person person = new PersonDAO().getPerson(firstName, lastName, rankId);
+      
+      logger.info("Person:");
+      logger.info(person.toString());
+      logger.info("Workcenter:");
+      logger.info(person.getWorkcenter());
+      EditPersonStage.display(person);
+    });
 
     manageOptionsBox.getChildren().addAll(addPersonButton, editPersonButton);
     manageOptionsBox.getStyleClass().addAll("options");
@@ -391,13 +445,13 @@ public class MainStage {
     people = personDao.getPeopleArrayListByShift(shift, workcenter);
 
     //  DEBUG:
-    logger.info("[MainStage.rebuildTable()] people = " + people + "\n");
+    logger.fine("[MainStage.rebuildTable()] people = " + people + "\n");
     
     //  All-Shifts View:
     if (shift < 1) {
       
-    // =============================  Columns  ============================
-    //      =========================  Name  =========================
+      // =============================  Columns  ============================
+      //      =========================  Name  =========================
     outputTable.getColumns().add(createColumn(0, "Name"));
     
     //      ======================  Workcenter  ======================
@@ -427,7 +481,7 @@ public class MainStage {
             new ShiftDateDAO().getWeek(p, LocalDate.now());
 
         //  DEBUG:
-        logger.info("[MainStage.rebuildTable()] shifts = " + shifts);
+        logger.fine("[MainStage.rebuildTable()] shifts = " + shifts);
 
         ObservableList<StringProperty> row =
             FXCollections.observableArrayList();
@@ -485,7 +539,7 @@ public class MainStage {
             new PersonEventDAO().getWeekEvents(p, LocalDate.now());
         
         //  DEBUG:
-        logger.info("[MainStage.rebuildTable()] events = " + events);
+        logger.fine("[MainStage.rebuildTable()] events = " + events);
 
         ObservableList<ObservableList<StringProperty>> row = FXCollections.observableArrayList();
         
@@ -514,7 +568,7 @@ public class MainStage {
           
           ObservableList<StringProperty> workcenterNameList =
             FXCollections.observableArrayList(workcenterNameProperty);
-          logger.info("workcenterNameList = " + workcenterNameList);
+          logger.fine("workcenterNameList = " + workcenterNameList);
           row.add(1, workcenterNameList);
         } 
 //
@@ -525,19 +579,30 @@ public class MainStage {
 
     logger.fine("Exiting MainStage.populateShiftViewTable()");
   }
-
+  
   /**
    * <p>Creates the <code>outputTable</code> and sets its width, height,
    * <code>CSS</code> style, and selection mode.<p>
    */
   private void buildShiftViewTable() {
     outputTable = new TableView();
-    logger.info("outputTable has been set");
+    logger.fine("outputTable has been set");
     int width = 500;
     int height = 500;
     outputTable.setMinSize(width, height);
     outputTable.getStyleClass().add("pane");
-    outputTable.getSelectionModel().setCellSelectionEnabled(true);
+//    outputTable.getSelectionModel().setCellSelectionEnabled(true);
+//    outputTable.getSelectionModel().selectedItemProperty().addListener(
+//        (obs, oldSelection, newSelection) -> {
+//          ObservableList <TablePosition> selectedCells =
+//              outputTable.getSelectionModel().getSelectedCells();
+//          for (TablePosition tablePosition : selectedCells) {
+//            if (tablePosition.getColumn() == 0) {
+//              outputTable.getSelectionModel().select(tablePosition.getRow());
+//              logger.info("Selecting row " + tablePosition.getRow());
+//            }
+//          }
+//        });
     outputTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     outputTable.setId("schedule_table");
   }

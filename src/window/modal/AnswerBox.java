@@ -165,7 +165,7 @@ public class AnswerBox {
       window.setResizable(false);
   
       //  DEBUG:
-      logger.info(String.format("[AnswerBox.display()]\n"
+      logger.fine(String.format("[AnswerBox.display()]\n"
                               + "height: %s\nwidth: %s\n", height, width));
   
       //  The following makes messageLabel grow to its preferred size, and

@@ -22,20 +22,52 @@
 #schedule_table .table-column {
     -fx-alignment: CENTER;
 }
-
-#mid_style {
+.midshift {
     /* -fx-text-fill: */
     -fx-background-color:orangered;
 }
 
-#day_style {
+.table-row-cell midshift:selected .text {
+    -fx-fill:fuchsia;
+}
+
+.dayshift {
     /* -fx-text-fill: */
     -fx-background-color:lightblue;
 }
 
-#swing_style {
+.swingshift {
     /* -fx-text-fill: */
     -fx-background-color:springgreen;
+}
+
+.noshift {
+    /* -fx-text-fill: */
+   -fx-background-color:white;
+}
+
+/*#mid_style {
+     -fx-text-fill: 
+    -fx-background-color:orangered;
+}
+
+#day_style {
+     -fx-text-fill: 
+    -fx-background-color:lightblue;
+}
+
+#swing_style {
+     -fx-text-fill: 
+    -fx-background-color:springgreen;
+}
+
+#no_style {
+     -fx-text-fill: 
+    -fx-background-color:white;
+}*/
+
+.table-row-cell:selected .text {
+    -fx-fill:mediumblue;
 }
 
 .separator .line {

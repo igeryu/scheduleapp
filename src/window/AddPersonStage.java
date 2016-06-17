@@ -134,10 +134,10 @@ public class AddPersonStage {
     PersonDAO personDao = new PersonDAO();
 
     //  DEBUG:
-    logger.info("\nworkcenterID = " + workcenterID);
-    logger.info("\nshiftID = "      + shiftID);
-    logger.info("\nrankID = "       + rankID);
-    logger.info("\nStart Date = "   + startDate);
+    logger.fine("\nworkcenterID = " + workcenterID);
+    logger.fine("\nshiftID = "      + shiftID);
+    logger.fine("\nrankID = "       + rankID);
+    logger.fine("\nStart Date = "   + startDate);
 
     if (personDao.addPerson(firstName, lastName, rankID, workcenterID,
                             shiftID,   skillID,  startDate)) {
@@ -394,7 +394,7 @@ public class AddPersonStage {
     int workcenterID = workcenterBox.getSelectionModel().getSelectedIndex() + 1;
 
     //  DEBUG:
-    logger.info("\nSelected Workcenter: " + workcenterID);
+    logger.fine("\nSelected Workcenter: " + workcenterID);
 
     switch (shift) {
       case MIDS:

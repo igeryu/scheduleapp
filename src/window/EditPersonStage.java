@@ -25,6 +25,8 @@
  * 2016-03-24 : Grouped imports by root package
  * 2016-03-24 : Removed instantiation of classes with only static methods
  * 2016-03-24 : Formatted to match Google Java Style
+ * 
+ * 2016-06-17 : Changed `display()` to take the `Person` input.  It still creates a 'dummy' object if the input is null.
  */
 
 package window;
@@ -141,7 +143,7 @@ public class EditPersonStage {
         String newValue = AnswerBox.display(title, message);
         
         // DEBUG:
-        logger.info("\n[EditPersonStage.confirmChangeItem()] answer: " + newValue);
+        logger.fine("\n[EditPersonStage.confirmChangeItem()] answer: " + newValue);
         
         return newValue;
     }  //  end method confirmChangeItem(Item)
@@ -175,7 +177,7 @@ public class EditPersonStage {
                                                   options, orientation);
         
         // DEBUG:
-        logger.info("\n[EditPersonStage.confirmChangeItem()] answer: " + newValue);
+        logger.fine("\n[EditPersonStage.confirmChangeItem()] answer: " + newValue);
         
         return newValue;
     }
@@ -224,9 +226,13 @@ public class EditPersonStage {
      * <p>Displays the 'Edit Person' stage (window) using the given
      * <code>Person</code> parameter.</p>
      */
-  public static void display(Person inpuPerson) {
+  public static void display(Person inputPerson) {
     //  DEBUG/TESTING:
-    person = new Person("First_Name", "Last_Name", "SSgt", "5");
+    if (inputPerson == null) {
+      person = new Person("First_Name", "Last_Name", "SSgt", "5");
+    } else {
+      person = inputPerson;
+    }
 
     window = new Stage();
     //  TODO: [maybe] Change this line to have the person's name:

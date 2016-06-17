@@ -175,7 +175,7 @@ public class ShiftDateDAO {
       stmt.executeUpdate();
 
       //  DEBUG:
-      logger.info("\ninsert() successful.");
+      logger.fine("\ninsert() successful.");
     } catch (SQLException se) {
       throw new RuntimeException(
           "A database error occurred. " + se.getMessage());

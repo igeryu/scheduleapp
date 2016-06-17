@@ -22,6 +22,8 @@
  * 
  * 2016-03-25 : Formatted to match Google Java Style
  * 2016-03-25 : Replaced debug System.out calls with Logger calls
+ * 
+ * 2016-06-17 : Added `getPerson(String, String, int)` method to help `MainStage.java` find the appropriate person to edit
  */
 
 /**
@@ -59,7 +61,7 @@ public class PersonDAO {
     
     public void delete(Person person) {
         //  DEBUG:
-        logger.info("[PersonDAO_New.delete()] Entering method...");
+        logger.fine("[PersonDAO_New.delete()] Entering method...");
         
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -92,7 +94,7 @@ public class PersonDAO {
                 }
             }
         }
-        logger.info("[PersonDAO_New.delete()] Exiting method...");
+        logger.fine("[PersonDAO_New.delete()] Exiting method...");
     }
     private static final String DELETE_STMT = "DELETE FROM person "
             + "WHERE id = ?";
@@ -104,7 +106,7 @@ public class PersonDAO {
 
         try {
             conn = DBConnectionPool.getPoolConnection();
-            request = conn.prepareStatement(GET_STMT);
+            request = conn.prepareStatement(GET_BY_ID_STMT);
             request.setInt(1, personID);
 
             ResultSet rset = request.executeQuery();
@@ -141,8 +143,64 @@ public class PersonDAO {
 
         return person;
     }
-    private static final String GET_STMT = "SELECT * FROM person "
+    private static final String GET_BY_ID_STMT = "SELECT * FROM person "
             + "WHERE id = ?";
+    
+    public Person getPerson(String firstName, String lastName, int rankId) {
+        Person person = null;
+        PreparedStatement request = null;
+        Connection conn = null;
+
+        try {
+            conn = DBConnectionPool.getPoolConnection();
+            request = conn.prepareStatement(GET_STMT);
+            request.setString(1, firstName);
+            request.setString(2, lastName);
+            request.setInt(3, rankId);
+
+            ResultSet rset = request.executeQuery();
+
+            
+            if (rset.next()) {
+                int id = rset.getInt("id");
+                int wcId = rset.getInt("workcenter_id");
+                int shId = rset.getInt("shift_id");
+                int skId = rset.getInt("skill_id");
+
+                //  TODO:  Fix this:
+                person = new Person(id, firstName, lastName, rankId, wcId, shId, skId);
+            }
+            if (rset.next()) {
+              return null;
+            }
+        } catch (SQLException se) {
+            throw new RuntimeException(
+                    "A database error occurred. " + se.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Exception: " + e.getMessage());
+        } finally {
+            if (request != null) {
+                try {
+                    request.close();
+                } catch (SQLException se) {
+                    se.printStackTrace(System.err);
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                }
+            }
+        }
+
+        return person;
+    }
+    private static final String GET_STMT = "SELECT * FROM person "
+            + "WHERE first_name = ? "
+            + "AND   last_name  = ? "
+            + "AND   rank_id    = ?";
 
     public ArrayList<Person> findPeople(String search) {
 
@@ -221,7 +279,7 @@ public class PersonDAO {
                 int workcenter = rset.getInt("workcenter_id");
                 
                 
-                logger.info(String.format("PersonDAO_New.getPeopleByShift()\n"
+                logger.fine(String.format("PersonDAO_New.getPeopleByShift()\n"
                                 + "rank: %s\nskill: %s", rank, skill));
 
                 //  TODO:  Fix this:
@@ -229,7 +287,7 @@ public class PersonDAO {
                                            rank, workcenter, skill);
                 person.setObjectID(id);
                 
-                logger.info(String.format("PersonDAO_New.getPeopleByShift()\n"
+                logger.fine(String.format("PersonDAO_New.getPeopleByShift()\n"
                                 + "person.rank: %s\n\"person.skill: %s",
                                 person.getRank(), person.getSkill()));
 
@@ -269,7 +327,7 @@ public class PersonDAO {
     public ArrayList<Person> getPeopleArrayListByShift(int shift,
                                                        int workcenter,
                                                        LocalDate date) {
-      logger.info("Entering PersonDAO.getPeopleArrayListByShift\n"
+      logger.fine("Entering PersonDAO.getPeopleArrayListByShift\n"
                 + "  shift      = " + shift + "\n"
                 + "  workcenter = " + workcenter + "\n"
                 + "  date       = " + date + "\n");
