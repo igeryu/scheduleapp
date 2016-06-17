@@ -19,16 +19,16 @@ Functionality will be added to allow for the following features (not all inclusi
 
 [**PersonDAO.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java)
 
-- Added `getPerson(String, String, int)` method to help `MainStage.java` find the appropriate person to edit
+- Added [`getPerson(String, String, int)`](https://github.com/igeryu/scheduleapp/blob/develop/src/domain/PersonDAO.java#L149) method to help `MainStage.java` find the appropriate person to edit
 
 [**EditPersonStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/EditPersonStage.java)
 
-- Changed `display()` to take the `Person` input.  It still creates a 'dummy' object if the input is null.
+- Changed [`display()`](https://github.com/igeryu/scheduleapp/blob/develop/src/window/EditPersonStage.java#L229) to take the `Person` input.  It still creates a 'dummy' object if the input is null.
 
 [**MainStage.java**](https://github.com/igeryu/scheduleapp/blob/develop/src/window/MainStage.java)
 
 - Changed `display()` to set `logger` to `INFO` level
-- The `editPersonButton` now sends the proper person to be found
+- The [`editPersonButton`](https://github.com/igeryu/scheduleapp/blob/develop/src/window/MainStage.java#L316) now sends the proper person to be found
 
 ### 2016-03-26
 
