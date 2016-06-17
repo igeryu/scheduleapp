@@ -1,6 +1,9 @@
 
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 import window.AddPersonStage;
 import window.EditPersonStage;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -20,37 +23,42 @@ import window.MainStage;
  * @author alanjohnson
  */
 public class TestDriver extends Application {
-    
-    public static void main (String[] args) {
-        
-        launch(args);
-        
-    }
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        //  DEBUG:
-        System.out.println("\n[TestDriver.start()] Testing database...");
-        
-        DBBuild.testDatabase();
-        Stage stage = new Stage();
-        Pane layout = new VBox(30);
-        Scene scene = new Scene(layout, 200, 200);
-        stage.setScene(scene);
-        
-        Button addPersonButton = new Button("Test 'Add Person'");
-        addPersonButton.setOnAction(e -> (new AddPersonStage()).display());
-        layout.getChildren().add(addPersonButton);
-        
-        Button editPersonButton = new Button("Test 'Edit Person'");
-        editPersonButton.setOnAction(e -> (new EditPersonStage()).display(null));
-        layout.getChildren().add(editPersonButton);
-        
-        Button mainStageButton = new Button("Test Main Stage");
-        mainStageButton.setOnAction(e -> (new MainStage()).display());
-        layout.getChildren().add(mainStageButton);
-        
-        stage.show();
-    }
+  private static final Logger logger = Logger.getLogger(TestDriver.class.getName());
+
+  public static void main(String[] args) {
+
+    launch(args);
+
+  }
+
+  @Override
+  public void start(Stage primaryStage) throws Exception {
+//    LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.WARNING); 
     
+    //  DEBUG:
+    logger.info("[TestDriver.start()] Testing database...");
+
+    DBBuild.testDatabase();
+    Stage stage = new Stage();
+    stage.setTitle("Schedule Application");
+    Pane layout = new VBox(30);
+    Scene scene = new Scene(layout, 200, 200);
+    stage.setScene(scene);
+
+    Button addPersonButton = new Button("Test 'Add Person'");
+    addPersonButton.setOnAction(e -> (new AddPersonStage()).display());
+    layout.getChildren().add(addPersonButton);
+
+    Button editPersonButton = new Button("Test 'Edit Person'");
+    editPersonButton.setOnAction(e -> (new EditPersonStage()).display(null));
+    layout.getChildren().add(editPersonButton);
+
+    Button mainStageButton = new Button("Test Main Stage");
+    mainStageButton.setOnAction(e -> (new MainStage()).display());
+    layout.getChildren().add(mainStageButton);
+
+    stage.show();
+  }
+
 }

@@ -16,6 +16,14 @@
  * 2016-03-07 : Renamed both getPeopleListByShift() methods to getPeopleObsListByShift()
  * 2016-03-07 : Added both getPeopleArrayListByShift() methods
  * 2016-03-07 : Added getAllPeople()
+ * 
+ * 2016-03-13 : Modified getPeopleArrayListByShift(shift, workcenter, date) to allow for the shift or date parameters to be wildcards (< 1)
+ * 2016-03-13 : Changed all method parameters from having an Integer parameter to primitive int parameters
+ * 
+ * 2016-03-25 : Formatted to match Google Java Style
+ * 2016-03-25 : Replaced debug System.out calls with Logger calls
+ * 
+ * 2016-06-17 : Added `getPerson(String, String, int)` method to help `MainStage.java` find the appropriate person to edit
  */
 
 /**
@@ -31,29 +39,35 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
 import javax.swing.table.TableModel;
+
 import net.proteanit.sql.DbUtils;
+
 import util.DBConnectionPool;
 
 public class PersonDAO {
 
-    private DBConnectionPool connPool;
+//    private DBConnectionPool connPool;
+  private static final Logger logger = Logger.getLogger(PersonDAO.class.getName());
     
     //  TODO:  Build an arraylist of all people at initialization, then make methods to return inviduals that match criteria (shift, workcenter, etc)
     //  TODO:  Refactor other classes that use PersonDAO, to only use one instance, so that the population of the arraylist mentioned above happens only when necessary
     
     public void delete(Person person) {
         //  DEBUG:
-        System.out.println("\n[PersonDAO_New.delete()] Entering method...");
+        logger.fine("[PersonDAO_New.delete()] Entering method...");
         
         Connection conn = null;
         PreparedStatement stmt = null;
 
         try {
-            conn = connPool.getPoolConnection();
+            conn = DBConnectionPool.getPoolConnection();
             stmt = conn.prepareStatement(DELETE_STMT);
             
             stmt.setInt(1, person.getObjectID());
@@ -80,11 +94,10 @@ public class PersonDAO {
                 }
             }
         }
-        System.out.println("\n[PersonDAO_New.delete()] Exiting method...");
+        logger.fine("[PersonDAO_New.delete()] Exiting method...");
     }
     private static final String DELETE_STMT = "DELETE FROM person "
             + "WHERE id = ?";
-    
     
     public Person getPerson(int personID) {
         Person person = null;
@@ -93,7 +106,7 @@ public class PersonDAO {
 
         try {
             conn = DBConnectionPool.getPoolConnection();
-            request = conn.prepareStatement(GET_STMT);
+            request = conn.prepareStatement(GET_BY_ID_STMT);
             request.setInt(1, personID);
 
             ResultSet rset = request.executeQuery();
@@ -130,10 +143,65 @@ public class PersonDAO {
 
         return person;
     }
-    private static final String GET_STMT = "SELECT * FROM person "
+    private static final String GET_BY_ID_STMT = "SELECT * FROM person "
             + "WHERE id = ?";
-
     
+    public Person getPerson(String firstName, String lastName, int rankId) {
+        Person person = null;
+        PreparedStatement request = null;
+        Connection conn = null;
+
+        try {
+            conn = DBConnectionPool.getPoolConnection();
+            request = conn.prepareStatement(GET_STMT);
+            request.setString(1, firstName);
+            request.setString(2, lastName);
+            request.setInt(3, rankId);
+
+            ResultSet rset = request.executeQuery();
+
+            
+            if (rset.next()) {
+                int id = rset.getInt("id");
+                int wcId = rset.getInt("workcenter_id");
+                int shId = rset.getInt("shift_id");
+                int skId = rset.getInt("skill_id");
+
+                //  TODO:  Fix this:
+                person = new Person(id, firstName, lastName, rankId, wcId, shId, skId);
+            }
+            if (rset.next()) {
+              return null;
+            }
+        } catch (SQLException se) {
+            throw new RuntimeException(
+                    "A database error occurred. " + se.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Exception: " + e.getMessage());
+        } finally {
+            if (request != null) {
+                try {
+                    request.close();
+                } catch (SQLException se) {
+                    se.printStackTrace(System.err);
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                }
+            }
+        }
+
+        return person;
+    }
+    private static final String GET_STMT = "SELECT * FROM person "
+            + "WHERE first_name = ? "
+            + "AND   last_name  = ? "
+            + "AND   rank_id    = ?";
+
     public ArrayList<Person> findPeople(String search) {
 
         PreparedStatement request = null;
@@ -194,8 +262,6 @@ public class PersonDAO {
         Connection conn = null;
         
         ArrayList<Person> personList = new ArrayList<>();
-//        Map<Integer, String> rankMap = (new RankDAO()).getMap();
-//        Map<Integer, String> skillMap = (new SkillDAO()).getMap();
         
         try {
             conn = DBConnectionPool.getPoolConnection();
@@ -213,20 +279,22 @@ public class PersonDAO {
                 int workcenter = rset.getInt("workcenter_id");
                 
                 
-                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "rank: %s\nskill: %s", rank, skill);
+                logger.fine(String.format("PersonDAO_New.getPeopleByShift()\n"
+                                + "rank: %s\nskill: %s", rank, skill));
 
                 //  TODO:  Fix this:
-                Person person = new Person(firstName, lastName, rank, workcenter, skill);
+                Person person = new Person(firstName, lastName,
+                                           rank, workcenter, skill);
                 person.setObjectID(id);
                 
-                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
+                logger.fine(String.format("PersonDAO_New.getPeopleByShift()\n"
+                                + "person.rank: %s\n\"person.skill: %s",
+                                person.getRank(), person.getSkill()));
 
                 personList.add(person);
             }
-            
-//            System.out.println("\nTest Point A");
+
+            logger.log(Level.FINE, "Test Point A");
             
             return personList;
 
@@ -256,99 +324,112 @@ public class PersonDAO {
     }
     private static final String GET_ALL_STMT = "SELECT * FROM person";
     
-    public ArrayList<Person> getPeopleArrayListByShift(Integer shift,
-                                                   int workcenter,
-                                                   LocalDate date) {
+    public ArrayList<Person> getPeopleArrayListByShift(int shift,
+                                                       int workcenter,
+                                                       LocalDate date) {
+      logger.fine("Entering PersonDAO.getPeopleArrayListByShift\n"
+                + "  shift      = " + shift + "\n"
+                + "  workcenter = " + workcenter + "\n"
+                + "  date       = " + date + "\n");
+      PreparedStatement request = null;
+      Connection conn = null;
+      if (date == null) date = LocalDate.now();
+      
+      ObservableList<Person> personData = null;
+      ArrayList<Person> personList = new ArrayList<>();
+      
+      try {
+          conn = DBConnectionPool.getPoolConnection();
+          request = conn.prepareStatement(GET_BY_SHIFT_STMT);
+          
+          if (workcenter >= 1)
+              request.setInt(1, workcenter);
+          else
+              request.setString(1, "%");
 
-        PreparedStatement request = null;
-        Connection conn = null;
-        if (date == null) date = LocalDate.now();
-        
-        ObservableList<Person> personData = null;
-        ArrayList<Person> personList = new ArrayList<>();
-        Map<Integer, String> rankMap = (new RankDAO()).getMap();
-        Map<Integer, String> skillMap = (new SkillDAO()).getMap();
-        
-        try {
-            conn = DBConnectionPool.getPoolConnection();
-            request = conn.prepareStatement(GET_BY_SHIFT_STMT);
-            request.setInt(1, workcenter);
+          ResultSet rset = request.executeQuery();
+          ShiftDateDAO shiftDateDao = new ShiftDateDAO();
+          
+          while (rset.next()) {
+              int id = rset.getInt("id");
+              int shift_id = shiftDateDao.getCurrentShift(id, date);
+              
+              //  DEBUG:
+              logger.fine("shift_id = " + shift_id + "\n");
+              
+              if (shift >= 1 && shift_id != shift) {
+                  continue;
+              }
+              
+              String firstName = rset.getString("first_name");
+              String lastName = rset.getString("last_name");
+              int rank_id = rset.getInt("rank_id");
+              int skill_id = rset.getInt("skill_id");
+              int workcenter_id = rset.getInt("workcenter_id");
+              
+              logger.log(Level.FINE,
+                  String.format("PersonDAO_New.getPeopleByShift()\n"
+                              + "rank: %s\nskill: %s", rank_id, skill_id));
 
-            ResultSet rset = request.executeQuery();
-            ShiftDateDAO shiftDateDao = new ShiftDateDAO();
-            
-            while (rset.next()) {
-                int id = rset.getInt("id");
-                int shift_id = shiftDateDao.getCurrentShift(id, date);
-                
-                if (shift_id != shift)
-                    continue;
-                
-                String firstName = rset.getString("first_name");
-                String lastName = rset.getString("last_name");
-                String rank = rankMap.get(rset.getInt("rank_id"));
-                String skill = skillMap.get(rset.getInt("skill_id"));
-                
-                
-                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "rank: %s\nskill: %s", rank, skill);
+              //  TODO:  Fix this:
+              Person person = new Person(firstName, lastName,
+                                         rank_id,   workcenter_id, skill_id);
+              person.setObjectID(id);
+              
+              logger.log(Level.FINE,
+                  String.format("PersonDAO.getPeopleByShift()\n"
+                              + "person.rank: %s\n\"person.skill: %s",
+                              person.getRank(), person.getSkill()));
 
-                //  TODO:  Fix this:
-                Person person = new Person(firstName, lastName, rank, skill);
-                
-                System.out.printf("\nPersonDAO_New.getPeopleByShift()\n"
-                                + "person.rank: %s\n\"person.skill: %s", person.getRank(), person.getSkill());
+              personList.add(person);
+          }
+          
+          logger.log(Level.FINE, String.format("Test Point A"));
+          
+          return personList;
 
-                personList.add(person);
-            }
-            
-//            System.out.println("\nTest Point A");
-            
-            return personList;
-
-        } catch (SQLException se) {
-            throw new RuntimeException(
-                    "[PersonDAO_New.getPeopleByShift()] A database error occurred. " + se.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("Exception: " + e.getMessage());
-        } finally {
-            if (request != null) {
-                try {
-                    request.close();
-                } catch (SQLException se) {
-                    se.printStackTrace(System.err);
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                }
-            }
-        }
+      } catch (SQLException se) {
+          throw new RuntimeException(
+                  "[PersonDAO_New.getPeopleByShift()] A database error occurred. " + se.getMessage());
+      } catch (Exception e) {
+          throw new RuntimeException("Exception: " + e.getMessage());
+      } finally {
+          if (request != null) {
+              try {
+                  request.close();
+              } catch (SQLException se) {
+                  se.printStackTrace(System.err);
+              }
+          }
+          if (conn != null) {
+              try {
+                  conn.close();
+              } catch (Exception e) {
+                  e.printStackTrace(System.err);
+              }
+          }
+      }
 
 //        return null;
     }
     
-    public ArrayList<Person> getPeopleArrayListByShift(Integer shift,
-                                                   Integer workcenter) {
+    public ArrayList<Person> getPeopleArrayListByShift(int shift,
+                                                       int workcenter) {
         return getPeopleArrayListByShift(shift, workcenter, LocalDate.now());
     }
     
-    
-    public ObservableList<Person> getPeopleObsListByShift(Integer shift,
-                                                   Integer workcenter) {
+    public ObservableList<Person> getPeopleObsListByShift(int shift,
+                                                          int workcenter) {
         return getPeopleObsListByShift(shift, workcenter, LocalDate.now());
     }
     
-    public ObservableList<Person> getPeopleObsListByShift(Integer shift,
-                                                   Integer workcenter,
-                                                   LocalDate date) {
+    public ObservableList<Person> getPeopleObsListByShift(int shift,
+                                                          int workcenter,
+                                                          LocalDate date) {
         return FXCollections.observableList(getPeopleArrayListByShift(shift, workcenter, date));
     }
     private static final String GET_BY_SHIFT_STMT = "SELECT * FROM person "
-            + "WHERE workcenter_id = ?";
+            + "WHERE CAST (workcenter_id AS CHAR) LIKE ?";
     
    /**
     * Depreciated
@@ -356,7 +437,7 @@ public class PersonDAO {
     * @param shift
     * @return 
     */
-    public TableModel getPeopleTableByShift(Integer workcenter, Integer shift) {
+    public TableModel getPeopleTableByShift(int workcenter, int shift) {
         
         PreparedStatement request = null;
         Connection conn = null;
@@ -373,13 +454,13 @@ public class PersonDAO {
             return DbUtils.resultSetToTableModel(rset);
 
         } catch (SQLException se) {
-            System.out.println("\nA database error occurred. " + se.getMessage());
+            logger.log(Level.WARNING, String.format("A database error occurred. " + se.getMessage()));
         } catch (Exception e) {
             throw new RuntimeException("Exception: " + e.getMessage());
         } finally {
             
             // DEBUG:
-            System.out.println("PersonDAO.getPeople() : finally block");
+            logger.log(Level.FINE, String.format("PersonDAO.getPeople() : finally block"));
             
             if (request != null) {
                 try {
@@ -420,22 +501,22 @@ public class PersonDAO {
         int rows = 0;
 
         //  DEBUG:
-        System.out.println("\nInserting Person:\n" + person);
+        logger.log(Level.FINE, String.format("Inserting Person:\n" + person));
         
         
         try {
             
             //  DEBUG:
-            //System.out.println("\nPersonDAO.insert() Checkpoint A");
+          logger.log(Level.FINE, String.format("PersonDAO.insert() Checkpoint A"));
             
-            conn = connPool.getPoolConnection();
+            conn = DBConnectionPool.getPoolConnection();
             
             //  DEBUG:
-            //System.out.println("\nPersonDAO.insert() Checkpoint B");
+            logger.log(Level.FINE, String.format("PersonDAO.insert() Checkpoint B"));
             
             stmt = conn.prepareStatement(INSERT_STMT);
             ObjectIdDAO objIdDAO = new ObjectIdDAO();
-            int personID = objIdDAO.getNextObjectID(ObjectIdDAO.PERSON);
+            int personID = objIdDAO.getNextObjectId(ObjectIdDAO.PERSON);
             stmt.setInt(1, personID);
             stmt.setString(2, person.getFirstName());
             stmt.setString(3, person.getLastName());
@@ -447,12 +528,12 @@ public class PersonDAO {
             person.setObjectID(personID);
             
             //  DEBUG:
-            System.out.println("\ninsert() successful.");
+            logger.log(Level.FINE, String.format("insert() successful."));
         } catch (SQLException se) {
             throw new RuntimeException(
                     "A database error occurred. " + se.getMessage());
         } catch (Exception e) {
-            System.out.printf("insert() ~ Exception: %s", e.getMessage());
+          logger.log(Level.FINE, String.format("insert() ~ Exception: %s", e.getMessage()));
         } finally {
             if (stmt != null) {
                 try {
@@ -476,9 +557,6 @@ public class PersonDAO {
         
     }  //  end method insert()
     
-    
-
-    
     /**
      * TODO:  Need to add Rank, Skill, Work Center
      * 
@@ -488,8 +566,8 @@ public class PersonDAO {
      * @return 
      */
     public boolean addPerson(String  fn,    String ln,
-                             Integer rank,  Integer workcenter,
-                             Integer shift, Integer skill,
+                             int rank,  int workcenter,
+                             int shift, int skill,
                              Date startDate) {
         //  TODO:  Fix this:
         Person person = new Person(-1, fn, ln, rank, workcenter, shift, skill);
@@ -504,8 +582,6 @@ public class PersonDAO {
         return true;
     }  // end method addPerson()
     
-    
-    
       private static final String UPDATE_STMT = "UPDATE person "
             + "SET first_name = ?, last_name = ?, "
             + "rank_id = ?, workcenter_id = ?, "
@@ -517,7 +593,7 @@ public class PersonDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = connPool.getPoolConnection();
+            conn = DBConnectionPool.getPoolConnection();
             stmt = conn.prepareStatement(UPDATE_STMT);
             stmt.setString(1, person.getFirstName());
             stmt.setString(2, person.getLastName());

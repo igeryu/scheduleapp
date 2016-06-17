@@ -1,12 +1,8 @@
-//  SkillDAO.java
+//  PersonEventTypeDAO.java
 
 /**
- * 2016-02-24 : Added getList() method
- * 2016-02-24 : Added getMap() method
- * 
- * 2016-02-24 : Added getMapReversed() method
- * 
- * 2016-03-24 : Formatted to match Google Java Style
+ * Changelog:
+ * 2016-03-26 : Created file from `ShiftDAO` template
  */
 
 /**
@@ -33,13 +29,13 @@ import javax.swing.DefaultComboBoxModel;
 
 import util.DBConnectionPool;
 
-public class SkillDAO {
+public class PersonEventTypeDAO {
 
   private DBConnectionPool connPool;
-  private static final Logger logger = Logger.getLogger(SkillDAO.class.getName());
+  private static final Logger logger = Logger.getLogger(PersonEventTypeDAO.class.getName());
 
   private static final String GET_STATEMENT = "SELECT * "
-      + "FROM skill";
+      + "FROM person_event_type";
 
   public ObservableList<String> getList() {
 
@@ -51,13 +47,60 @@ public class SkillDAO {
       request = conn.prepareStatement(GET_STATEMENT);
 
       ResultSet rset = request.executeQuery();
-      ArrayList<String> list = new ArrayList<>();
+      ObservableList<String> shiftList = FXCollections.observableArrayList();
 
       while (rset.next()) {
-        list.add(rset.getString("level"));
+        shiftList.add(rset.getString("name"));
       }
 
-      return FXCollections.observableArrayList(list);
+      return shiftList;
+
+    } catch (SQLException se) {
+      logger.log(Level.WARNING, "A database error occurred. " + se.getMessage());
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Exception: " + e.getMessage());
+    } finally {
+
+      if (request != null) {
+        try {
+          request.close();
+        } catch (SQLException se) {
+          se.printStackTrace(System.err);
+        }
+      }
+
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (Exception e) {
+          e.printStackTrace(System.err);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  public ComboBoxModel getComboModel() {
+
+    PreparedStatement request = null;
+    Connection conn = null;
+
+    ArrayList<Person> personList = new ArrayList<>();
+    try {
+      conn = DBConnectionPool.getPoolConnection();
+      request = conn.prepareStatement(GET_STATEMENT);
+
+      ResultSet rset = request.executeQuery();
+      ArrayList<String> shiftList = new ArrayList<>();
+
+      while (rset.next()) {
+        shiftList.add(rset.getString("name"));
+      }
+
+      String[] shiftArray = (String[]) shiftList.toArray(new String[0]);
+
+      return new DefaultComboBoxModel(shiftArray);
 
     } catch (SQLException se) {
       logger.log(Level.WARNING, "A database error occurred. " + se.getMessage());
@@ -99,7 +142,7 @@ public class SkillDAO {
 
       int number = 1;
       while (rset.next()) {
-        list.put(number++, rset.getString("level"));
+        list.put(number++, rset.getString("name"));
       }
 
       return list;
@@ -139,53 +182,6 @@ public class SkillDAO {
     }
 
     return reversedMap;
-  }
-
-  public ComboBoxModel getComboModel() {
-
-    PreparedStatement request = null;
-    Connection conn = null;
-
-    ArrayList<Person> personList = new ArrayList<>();
-    try {
-      conn = DBConnectionPool.getPoolConnection();
-      request = conn.prepareStatement(GET_STATEMENT);
-
-      ResultSet rset = request.executeQuery();
-      ArrayList<String> list = new ArrayList<>();
-
-      while (rset.next()) {
-        list.add(rset.getString("level"));
-      }
-
-      String[] array = (String[]) list.toArray(new String[0]);
-
-      return new DefaultComboBoxModel(array);
-
-    } catch (SQLException se) {
-      logger.log(Level.WARNING, "A database error occurred. " + se.getMessage());
-    } catch (Exception e) {
-      logger.log(Level.WARNING, "Exception: " + e.getMessage());
-    } finally {
-
-      if (request != null) {
-        try {
-          request.close();
-        } catch (SQLException se) {
-          se.printStackTrace(System.err);
-        }
-      }
-
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (Exception e) {
-          e.printStackTrace(System.err);
-        }
-      }
-    }
-
-    return null;
   }
 
 }
